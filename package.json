@@ -1,0 +1,23 @@
+{
+    "name": "escape-room-suite",
+    "version": "1.0.0",
+    "private": true,
+    "workspaces": [
+        "apps/*",
+        "packages/*"
+    ],
+    "devEngines": {
+        "packageManager": {
+            "name": "bun",
+            "version": "1.4.2"
+        }
+    },
+    "scripts": {
+        "dev": "turbo run dev",
+        "build": "turbo run build",
+        "lint": "turbo run lint"
+    },
+    "dependencies": {
+        "turbo": "^2.10.13"
+    }
+}
