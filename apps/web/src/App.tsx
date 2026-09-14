@@ -1,9 +1,7 @@
+import LoginForm from "@/components/LoginForm";
+
 function App() {
-    return (
-        <main>
-            <h1 className="text-2xl font-bold text-red-500">Hello World</h1>
-        </main>
-    );
+    return <LoginForm />;
 }
 
 export default App;
