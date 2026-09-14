@@ -13,7 +13,7 @@ Technologies used:
 
 - [Bun](https://bun.com/)
 - [Turborepo](https://turborepo.dev/)
-- React
+- React + Tailwind
 - React Native
 - Node & Express
 - [Socket.io](https://socket.io/)
