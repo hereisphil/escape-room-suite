@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
     Combobox,
     ComboboxContent,
@@ -41,7 +41,7 @@ const rooms: room[] = [
             "An analog-to-digital missile silo lockdown where players patch rotary dial circuitry, cross-reference encrypted punch cards, and cycle manual radiation blast doors.",
     },
     {
-        roomId: 2,
+        roomId: 3,
         shortName: "Clockwork",
         fullName: "Abandoned Clockwork Archive",
         summary:
@@ -52,38 +52,24 @@ const rooms: room[] = [
 function App() {
     const [currentRoom, setCurrentRoom] = useState<room>();
 
-    // Default to first room
-    useEffect(() => {
-        if (!currentRoom?.roomId) {
-            setCurrentRoom(rooms[0]);
-        }
-    }, []);
-
-    const handleRoomChange = (id: number): room | undefined => {
-        const selectedRoom = rooms.find((r) => r.roomId === id);
-        setCurrentRoom(selectedRoom);
-        return;
-    };
-
     return (
         <main className="py-6 px-2">
-            <header className="flex justify-between">
-                <Combobox
+            <header className="flex justify-between p-2 mb-4">
+                <Combobox<room>
                     items={rooms}
-                    onValueChange={() => handleRoomChange}
-                    itemToStringValue={(currentRoom) => currentRoom.roomId}
-                    itemToStringLabel={(currentRoom) => currentRoom.shortName}
+                    onValueChange={(selectedRoom) =>
+                        setCurrentRoom(selectedRoom ?? undefined)
+                    }
+                    itemToStringValue={(room) => String(room.roomId)}
+                    itemToStringLabel={(room) => room.shortName}
                 >
                     <ComboboxInput placeholder="Select a room" />
                     <ComboboxContent>
                         <ComboboxEmpty>No rooms found.</ComboboxEmpty>
                         <ComboboxList>
-                            {(currentRoom) => (
-                                <ComboboxItem
-                                    key={currentRoom?.roomId + Math.random()}
-                                    value={currentRoom}
-                                >
-                                    {currentRoom.shortName}
+                            {(room) => (
+                                <ComboboxItem key={room.roomId} value={room}>
+                                    {room.shortName}
                                 </ComboboxItem>
                             )}
                         </ComboboxList>
@@ -92,7 +78,7 @@ function App() {
                 <h1>Web Admin</h1>
                 <Button>Logout</Button>
             </header>
-            <section>
+            <section className="flex items-center justify-center">
                 {currentRoom ? (
                     <Card className="relative mx-auto w-full max-w-3xl pt-0">
                         <div className="absolute inset-0 z-30 aspect-video bg-black/35" />
@@ -120,7 +106,9 @@ function App() {
                         </CardFooter>
                     </Card>
                 ) : (
-                    <p>Select a Room to View.</p>
+                    <h2 className="bg-accent rounded-sm py-4 px-2">
+                        Select a Room to View.
+                    </h2>
                 )}
             </section>
         </main>
