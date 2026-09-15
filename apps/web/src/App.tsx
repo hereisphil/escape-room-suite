@@ -18,14 +18,9 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 
-interface room {
-    roomId: number;
-    shortName: string;
-    fullName: string;
-    summary: string;
-}
+import type { EscapeRoomType } from "@global-types";
 
-const rooms: room[] = [
+const rooms: EscapeRoomType[] = [
     {
         roomId: 1,
         shortName: "Deep-Sea",
@@ -50,12 +45,12 @@ const rooms: room[] = [
 ];
 
 function App() {
-    const [currentRoom, setCurrentRoom] = useState<room>();
+    const [currentRoom, setCurrentRoom] = useState<EscapeRoomType>();
 
     return (
         <main className="py-6 px-2">
             <header className="flex justify-between p-2 mb-4">
-                <Combobox<room>
+                <Combobox<EscapeRoomType>
                     items={rooms}
                     onValueChange={(selectedRoom) =>
                         setCurrentRoom(selectedRoom ?? undefined)
