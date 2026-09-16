@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Server Test</title>
+        <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    </head>
+    <body>
+        <h1>Server Monitor</h1>
+        <div id="status">Connecting...</div>
+        <div id="data"></div>
+
+        <script>
+            const socket = io("http://localhost:3001");
+
+            socket.on("connect", () => {
+                document.getElementById("status").textContent = "Connected";
+                socket.emit("register-client", "test");
+            });
+
+            socket.on("disconnect", () => {
+                document.getElementById("status").textContent = "Disconnected";
+            });
+        </script>
+    </body>
+</html>

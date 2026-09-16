@@ -4,3 +4,5 @@ export interface EscapeRoomType {
     fullName: string;
     summary: string;
 }
+
+export type ClientType = "mobile" | "tablet" | "web" | "test";
