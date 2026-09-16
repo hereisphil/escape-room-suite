@@ -36,6 +36,16 @@ declare module "socket.io" {
     }
 }
 
+/* -------------------------------------------------------------------------- */
+/*                           Middleware: Auth Guard                           */
+/* -------------------------------------------------------------------------- */
+io.use((socket, next) => {
+    const { role } = socket.handshake.auth;
+    if (role === "admin" || role === "player") return next();
+    console.log("Unauthorized attempted connection.");
+    next(new Error("Unauthorized"));
+});
+
 io.on("connection", (socket) => {
     console.log("Client connected:", socket.id);
 

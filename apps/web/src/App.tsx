@@ -1,4 +1,5 @@
-import { useState } from "react";
+import io from "socket.io-client";
+import { useState, useEffect } from "react";
 import {
     Combobox,
     ComboboxContent,
@@ -18,7 +19,7 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 
-import type { EscapeRoomType } from "@global-types";
+import { SERVER_URL, type EscapeRoomType } from "@global-types";
 
 const rooms: EscapeRoomType[] = [
     {
@@ -45,7 +46,30 @@ const rooms: EscapeRoomType[] = [
 ];
 
 function App() {
+    const socket = io(SERVER_URL, {
+        auth: { role: "admin", userId: "usr_admin_1", password: "password123" },
+    });
+
     const [currentRoom, setCurrentRoom] = useState<EscapeRoomType>();
+
+    useEffect(() => {
+        socket.on("connect", () => {
+            console.log("Web admin connected to server");
+            socket.emit("register-client", "web");
+        });
+
+        socket.on("disconnect", () => {
+            console.log("Traffic control disconnected from server");
+        });
+
+        socket.on("connect_error", (error) => {
+            console.log("Traffic control connection error:", error);
+        });
+
+        return () => {
+            socket.close();
+        };
+    }, []);
 
     return (
         <main className="py-6 px-2">
