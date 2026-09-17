@@ -1,5 +1,6 @@
 import io from "socket.io-client";
-import { useState, useEffect } from "react";
+import LoginForm from "./components/LoginForm";
+import { useState } from "react";
 import {
     Combobox,
     ComboboxContent,
@@ -20,6 +21,7 @@ import {
 } from "@/components/ui/card";
 
 import { SERVER_URL, type EscapeRoomType } from "@global-types";
+import type { LoginCredentials } from "@/components/LoginForm";
 
 const rooms: EscapeRoomType[] = [
     {
@@ -46,30 +48,35 @@ const rooms: EscapeRoomType[] = [
 ];
 
 function App() {
-    const socket = io(SERVER_URL, {
-        auth: { role: "admin", userId: "usr_admin_1", password: "password123" },
-    });
-
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [currentRoom, setCurrentRoom] = useState<EscapeRoomType>();
 
-    useEffect(() => {
+    const handleLogin = ({ username, password }: LoginCredentials) => {
+        // Initialize socket with the user's input credentials
+        const socket = io(SERVER_URL, {
+            auth: { username, password },
+        });
+
         socket.on("connect", () => {
-            console.log("Web admin connected to server");
+            setIsAuthenticated(true);
             socket.emit("register-client", "web");
         });
 
-        socket.on("disconnect", () => {
-            console.log("Traffic control disconnected from server");
+        socket.on("connect_error", (err) => {
+            console.log(err);
+            socket.disconnect();
         });
+    };
 
-        socket.on("connect_error", (error) => {
-            console.log("Traffic control connection error:", error);
-        });
-
-        return () => {
-            socket.close();
-        };
-    }, []);
+    if (!isAuthenticated) {
+        return (
+            <main className="flex justify-center items-center">
+                <section className="grow max-w-xl">
+                    <LoginForm onLogin={handleLogin} />
+                </section>
+            </main>
+        );
+    }
 
     return (
         <main className="py-6 px-2">

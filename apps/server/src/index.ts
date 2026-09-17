@@ -2,8 +2,8 @@ import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
-import type { ClientType, EscapeRoomType } from "@global-types";
-import { authenticate, type UserCredentials } from "@global-auth";
+import type { ClientType } from "@global-types";
+import { authenticate } from "@global-auth";
 
 const app = express();
 const server = createServer(app);
@@ -40,15 +40,19 @@ declare module "socket.io" {
 /*                           Middleware: Auth Guard                           */
 /* -------------------------------------------------------------------------- */
 io.use((socket, next) => {
-    const { role } = socket.handshake.auth;
-    if (role === "admin" || role === "player") return next();
-    console.log("Unauthorized attempted connection.");
-    next(new Error("Unauthorized"));
+    const { username, password } = socket.handshake.auth;
+    const user = authenticate(username, password);
+    if (!user) {
+        console.log("Unauthorized attempted connection.");
+        next(new Error("Unauthorized: Invalid credentials"));
+    }
+    // Store user info directly on the socket instance
+    socket.data.user = user;
+    next();
 });
 
 io.on("connection", (socket) => {
     console.log("Client connected:", socket.id);
-
     // Handle client type registration with type safety
     socket.on("register-client", (clientType: ClientType) => {
         socket.clientType = clientType;
