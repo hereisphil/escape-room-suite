@@ -16,6 +16,9 @@ const io = new Server(server, {
         origin: "*",
         methods: ["GET", "POST"],
     },
+    connectionStateRecovery: {
+        skipMiddlewares: true,
+    },
 });
 
 // Track connected clients by type with proper typing

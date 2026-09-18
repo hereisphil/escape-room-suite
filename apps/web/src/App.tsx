@@ -1,4 +1,4 @@
-import io from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 import LoginForm from "./components/LoginForm";
 import { useState } from "react";
 import {
@@ -25,54 +25,76 @@ import type { LoginCredentials } from "@/components/LoginForm";
 
 const rooms: EscapeRoomType[] = [
     {
-        roomId: 1,
-        shortName: "Deep-Sea",
-        fullName: "Deep-Sea Abyssal Research Station",
+        id: 1,
+        slug: "Deep-Sea",
+        name: "Deep-Sea Abyssal Research Station",
         summary:
             "A catastrophic pressure hull breach where players calibrate depth gauges, restore ballast integrity, and decode bioluminescent sonar signals to surface before oxygen depletion.",
     },
     {
-        roomId: 2,
-        shortName: "Bunker",
-        fullName: "Decommissioned Cold War Bunker",
+        id: 2,
+        slug: "Bunker",
+        name: "Decommissioned Cold War Bunker",
         summary:
             "An analog-to-digital missile silo lockdown where players patch rotary dial circuitry, cross-reference encrypted punch cards, and cycle manual radiation blast doors.",
     },
     {
-        roomId: 3,
-        shortName: "Clockwork",
-        fullName: "Abandoned Clockwork Archive",
+        id: 3,
+        slug: "Clockwork",
+        name: "Abandoned Clockwork Archive",
         summary:
             "The mechanical subterranean vault of a vanished horologist, requiring players to synchronize massive brass pendulum gears, align astrolabe lenses, and wind counterweighted escapement locks.",
     },
 ];
 
 function App() {
+    const [socket, setSocket] = useState<Socket | null>(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [authError, setAuthError] = useState<string | null>(null);
     const [currentRoom, setCurrentRoom] = useState<EscapeRoomType>();
 
     const handleLogin = ({ username, password }: LoginCredentials) => {
+        setAuthError(null);
+
         // Initialize socket with the user's input credentials
-        const socket = io(SERVER_URL, {
+        const newSocket = io(SERVER_URL, {
             auth: { username, password },
         });
 
-        socket.on("connect", () => {
+        newSocket.on("connect", () => {
             setIsAuthenticated(true);
-            socket.emit("register-client", "web");
+            newSocket.emit("register-client", "web");
         });
 
-        socket.on("connect_error", (err) => {
+        newSocket.on("connect_error", (err) => {
             console.log(err);
-            socket.disconnect();
+            setAuthError(err.message);
+            newSocket.disconnect();
         });
+
+        setSocket(newSocket);
     };
 
     if (!isAuthenticated) {
         return (
             <main className="flex justify-center items-center">
-                <section className="grow max-w-xl">
-                    <LoginForm onLogin={handleLogin} />
+                <section className="grow max-w-xl flex flex-col items-center">
+                    <LoginForm onLogin={handleLogin} errorMessage={authError} />
+                    <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-900 shadow-sm w-full max-w-sm tracking-wider">
+                        <p className="mt-1 font-bold">
+                            Use the following account to log in:
+                        </p>
+                        <div className="mt-2 space-y-1">
+                            <p>
+                                <span className="font-medium">Username:</span>{" "}
+                                <span className="font-mono">gamemaster</span>
+                            </p>
+                            <p>
+                                <span className="font-medium">Password:</span>{" "}
+                                <span className="font-mono">password123</span>
+                            </p>
+                        </div>
+                    </div>
                 </section>
             </main>
         );
@@ -86,16 +108,16 @@ function App() {
                     onValueChange={(selectedRoom) =>
                         setCurrentRoom(selectedRoom ?? undefined)
                     }
-                    itemToStringValue={(room) => String(room.roomId)}
-                    itemToStringLabel={(room) => room.shortName}
+                    itemToStringValue={(room) => String(room.id)}
+                    itemToStringLabel={(room) => room.slug}
                 >
                     <ComboboxInput placeholder="Select a room" />
                     <ComboboxContent>
                         <ComboboxEmpty>No rooms found.</ComboboxEmpty>
                         <ComboboxList>
                             {(room) => (
-                                <ComboboxItem key={room.roomId} value={room}>
-                                    {room.shortName}
+                                <ComboboxItem key={room.id} value={room}>
+                                    {room.slug}
                                 </ComboboxItem>
                             )}
                         </ComboboxList>
@@ -117,7 +139,7 @@ function App() {
                             <CardAction>
                                 <Badge variant="default">Live</Badge>
                             </CardAction>
-                            <CardTitle>{currentRoom?.shortName}</CardTitle>
+                            <CardTitle>{currentRoom?.slug}</CardTitle>
                             <CardDescription>
                                 {currentRoom?.summary}
                             </CardDescription>

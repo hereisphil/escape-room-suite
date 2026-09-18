@@ -18,7 +18,7 @@ export interface LoginCredentials {
 interface LoginFormProps {
     onLogin: (credentials: LoginCredentials) => void;
     isLoading?: boolean;
-    errorMessage?: string;
+    errorMessage: string | null;
 }
 
 export default function LoginForm({

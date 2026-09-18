@@ -2,9 +2,9 @@
 export const SERVER_URL = "http://192.168.1.105:3001";
 
 export interface EscapeRoomType {
-    roomId: number;
-    shortName: string;
-    fullName: string;
+    id: number;
+    slug: string;
+    name: string;
     summary: string;
 }
 
