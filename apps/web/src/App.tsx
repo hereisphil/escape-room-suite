@@ -22,35 +22,12 @@ import {
 import { SERVER_URL, type EscapeRoomType } from "@global-types";
 import type { LoginCredentials } from "@/components/LoginForm";
 
-const EscapeRooms: EscapeRoomType[] = [
-    {
-        id: 1,
-        slug: "Deep-Sea",
-        name: "Deep-Sea Abyssal Research Station",
-        summary:
-            "A catastrophic pressure hull breach where players calibrate depth gauges, restore ballast integrity, and decode bioluminescent sonar signals to surface before oxygen depletion.",
-    },
-    {
-        id: 2,
-        slug: "Bunker",
-        name: "Decommissioned Cold War Bunker",
-        summary:
-            "An analog-to-digital missile silo lockdown where players patch rotary dial circuitry, cross-reference encrypted punch cards, and cycle manual radiation blast doors.",
-    },
-    {
-        id: 3,
-        slug: "Clockwork",
-        name: "Abandoned Clockwork Archive",
-        summary:
-            "The mechanical subterranean vault of a vanished horologist, requiring players to synchronize massive brass pendulum gears, align astrolabe lenses, and wind counterweighted escapement locks.",
-    },
-];
-
 function App() {
     const [socket, setSocket] = useState<Socket | null>(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [authError, setAuthError] = useState<string | null>(null);
     const [currentRoom, setCurrentRoom] = useState<EscapeRoomType>();
+    const [allRooms, setAllRooms] = useState<EscapeRoomType[]>([]);
 
     const handleLogin = ({ username, password }: LoginCredentials) => {
         setAuthError(null);
@@ -63,6 +40,11 @@ function App() {
         newSocket.on("connect", () => {
             setIsAuthenticated(true);
             newSocket.emit("register-client", "web");
+        });
+
+        newSocket.on("load-rooms", (data) => {
+            console.log(data);
+            setAllRooms(data);
         });
 
         newSocket.on("connect_error", (err) => {
@@ -116,7 +98,7 @@ function App() {
                         <SelectValue placeholder="Select a room" />
                     </SelectTrigger>
                     <SelectContent>
-                        {EscapeRooms.map((room) => (
+                        {allRooms?.map((room) => (
                             <SelectItem key={room.id} value={room}>
                                 {room.slug}
                             </SelectItem>

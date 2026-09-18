@@ -2,8 +2,32 @@ import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
-import type { ClientType } from "@global-types";
+import type { ClientType, EscapeRoomType } from "@global-types";
 import { authenticate } from "@global-auth";
+
+const EscapeRooms: EscapeRoomType[] = [
+    {
+        id: 1,
+        slug: "Deep-Sea",
+        name: "Deep-Sea Abyssal Research Station",
+        summary:
+            "A catastrophic pressure hull breach where players calibrate depth gauges, restore ballast integrity, and decode bioluminescent sonar signals to surface before oxygen depletion.",
+    },
+    {
+        id: 2,
+        slug: "Bunker",
+        name: "Decommissioned Cold War Bunker",
+        summary:
+            "An analog-to-digital missile silo lockdown where players patch rotary dial circuitry, cross-reference encrypted punch cards, and cycle manual radiation blast doors.",
+    },
+    {
+        id: 3,
+        slug: "Clockwork",
+        name: "Abandoned Clockwork Archive",
+        summary:
+            "The mechanical subterranean vault of a vanished horologist, requiring players to synchronize massive brass pendulum gears, align astrolabe lenses, and wind counterweighted escapement locks.",
+    },
+];
 
 const app = express();
 const server = createServer(app);
@@ -56,6 +80,8 @@ io.use((socket, next) => {
 
 io.on("connection", (socket) => {
     console.log("Client connected:", socket.id);
+    socket.emit("load-rooms", EscapeRooms);
+
     // Handle client type registration with type safety
     socket.on("register-client", (clientType: ClientType) => {
         socket.clientType = clientType;
