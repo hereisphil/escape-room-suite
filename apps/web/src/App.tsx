@@ -2,13 +2,12 @@ import { io, Socket } from "socket.io-client";
 import LoginForm from "./components/LoginForm";
 import { useState } from "react";
 import {
-    Combobox,
-    ComboboxContent,
-    ComboboxEmpty,
-    ComboboxInput,
-    ComboboxItem,
-    ComboboxList,
-} from "@/components/ui/combobox";
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,7 +22,7 @@ import {
 import { SERVER_URL, type EscapeRoomType } from "@global-types";
 import type { LoginCredentials } from "@/components/LoginForm";
 
-const rooms: EscapeRoomType[] = [
+const EscapeRooms: EscapeRoomType[] = [
     {
         id: 1,
         slug: "Deep-Sea",
@@ -73,6 +72,7 @@ function App() {
         });
 
         setSocket(newSocket);
+        console.log(socket);
     };
 
     if (!isAuthenticated) {
@@ -103,26 +103,26 @@ function App() {
     return (
         <main className="py-6 px-2">
             <header className="flex justify-between p-2 mb-4">
-                <Combobox<EscapeRoomType>
-                    items={rooms}
+                <Select<EscapeRoomType>
+                    value={currentRoom ?? null}
                     onValueChange={(selectedRoom) =>
                         setCurrentRoom(selectedRoom ?? undefined)
                     }
                     itemToStringValue={(room) => String(room.id)}
                     itemToStringLabel={(room) => room.slug}
+                    isItemEqualToValue={(a, b) => a.id === b.id}
                 >
-                    <ComboboxInput placeholder="Select a room" />
-                    <ComboboxContent>
-                        <ComboboxEmpty>No rooms found.</ComboboxEmpty>
-                        <ComboboxList>
-                            {(room) => (
-                                <ComboboxItem key={room.id} value={room}>
-                                    {room.slug}
-                                </ComboboxItem>
-                            )}
-                        </ComboboxList>
-                    </ComboboxContent>
-                </Combobox>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Select a room" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {EscapeRooms.map((room) => (
+                            <SelectItem key={room.id} value={room}>
+                                {room.slug}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
                 <h1>Web Admin</h1>
                 <Button>Logout</Button>
             </header>
