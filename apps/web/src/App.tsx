@@ -1,7 +1,13 @@
 import { io, Socket } from "socket.io-client";
-import type { ServerToClientEvents, ClientToServerEvents } from "@global-types";
-// import LoginForm from "./components/LoginForm";
-import { useState, useEffect } from "react";
+import type {
+    ServerToClientEvents,
+    ClientToServerEvents,
+    LoginCredentials,
+    EscapeRoomType,
+} from "@global-types";
+import { SERVER_URL } from "@global-types";
+import LoginForm from "./components/LoginForm";
+import { useState } from "react";
 import {
     Select,
     SelectContent,
@@ -21,89 +27,57 @@ import {
 } from "@/components/ui/card";
 import { SendMessage } from "./components/SendMessage";
 
-import { SERVER_URL, type EscapeRoomType } from "@global-types";
-// import type { LoginCredentials } from "@/components/LoginForm";
-
 function App() {
     const [socket, setSocket] = useState<Socket | null>(null);
-    // const [isAuthenticated, setIsAuthenticated] = useState(false);
-    // const [authError, setAuthError] = useState<string | null>(null);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [authError, setAuthError] = useState<string | null>(null);
     const [currentRoom, setCurrentRoom] = useState<EscapeRoomType>();
     const [allRooms, setAllRooms] = useState<EscapeRoomType[]>([]);
 
-    // const handleLogin = ({ username, password }: LoginCredentials) => {
-    //     setAuthError(null);
-
-    //     // Initialize socket with the user's input credentials
-    //     const newSocket: Socket<ServerToClientEvents, ClientToServerEvents> =
-    //         io(SERVER_URL, {
-    //             auth: { username, password },
-    //         });
-
-    //     newSocket.on("connect", () => {
-    //         setIsAuthenticated(true);
-    //         newSocket.emit("client:register", "web");
-    //     });
-
-    //     newSocket.on("room:load", (rooms) => {
-    //         setAllRooms(rooms);
-    //     });
-
-    //     newSocket.on("connect_error", (err) => {
-    //         setAuthError(err.message);
-    //         newSocket.disconnect();
-    //     });
-
-    //     if (socket) setSocket(newSocket);
-    // };
-
-    useEffect(() => {
+    const handleLogin = ({ username, password }: LoginCredentials) => {
+        setAuthError(null);
         const newSocket: Socket<ServerToClientEvents, ClientToServerEvents> =
-            io(SERVER_URL);
-
+            io(SERVER_URL, {
+                auth: { username, password },
+            });
         newSocket.on("connect", () => {
+            setIsAuthenticated(true);
             newSocket.emit("client:register", "web");
         });
-
         newSocket.on("room:load", (rooms) => {
             setAllRooms(rooms);
         });
-
-        newSocket.on("connect_error", (_err) => {
+        newSocket.on("connect_error", (err) => {
+            setAuthError(err.message);
             newSocket.disconnect();
         });
-
         setSocket(newSocket);
+    };
 
-        return () => {
-            newSocket.disconnect(); // hang up when App unmounts
-        };
-    }, []);
-
-    // if (!isAuthenticated) {
-    //     return (
-    //         <main className="flex justify-center items-center">
-    //             <section className="grow max-w-xl flex flex-col items-center">
-    //                 <LoginForm onLogin={handleLogin} errorMessage={authError} />
-    //                 <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-900 shadow-sm w-full max-w-sm tracking-wider">
-    //                     <p className="mt-1 font-bold">
-    //                         Use the following account to log in:
-    //                     </p>
-    //                     <div className="mt-2 space-y-1">
-    //                         <p>
-    //                             <span className="font-medium">Username:</span>{" "}
-    //                             <span className="font-mono">gamemaster</span>
-    //                         </p>
-    //                         <p>
-    //                             <span className="font-medium">Password:</span>{" "}
-    //                             <span className="font-mono">password123</span>
-    //                         </p>
-    //                     </div>
-    //                 </div>
-    //             </section>
-    //         </main>
-    //     );
-    // }
+    if (!isAuthenticated) {
+        return (
+            <main className="flex justify-center items-center">
+                <section className="grow max-w-xl flex flex-col items-center">
+                    <LoginForm onLogin={handleLogin} errorMessage={authError} />
+                    <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-900 shadow-sm w-full max-w-sm tracking-wider">
+                        <p className="mt-1 font-bold">
+                            Use the following account to log in:
+                        </p>
+                        <div className="mt-2 space-y-1">
+                            <p>
+                                <span className="font-medium">Username:</span>{" "}
+                                <span className="font-mono">gamemaster</span>
+                            </p>
+                            <p>
+                                <span className="font-medium">Password:</span>{" "}
+                                <span className="font-mono">password123</span>
+                            </p>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        );
+    }
 
     if (!socket) {
         return (

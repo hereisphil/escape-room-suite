@@ -1,6 +1,11 @@
 // Not a type but useful to have here:
 export const SERVER_URL = "http://192.168.1.105:3001";
 
+export interface LoginCredentials {
+    username: string;
+    password: string;
+}
+
 export interface EscapeRoomType {
     id: number;
     slug: string;

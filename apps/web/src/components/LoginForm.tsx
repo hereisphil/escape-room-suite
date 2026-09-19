@@ -9,11 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-export interface LoginCredentials {
-    username: string;
-    password: string;
-}
+import type { LoginCredentials } from "@global-types";
 
 interface LoginFormProps {
     onLogin: (credentials: LoginCredentials) => void;

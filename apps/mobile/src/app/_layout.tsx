@@ -1,30 +1,30 @@
-import { io, Socket } from "socket.io-client";
-import type { ServerToClientEvents, ClientToServerEvents } from "@global-types";
-import { SERVER_URL } from "@global-types";
-import { useState, useEffect } from "react";
 import { Stack } from "expo-router";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
+import { AuthProvider, useAuth } from "@/auth-context";
 
 export default function RootLayout() {
-    const [socket, setSocket] = useState<Socket | null>(null);
-    useEffect(() => {
-        const newSocket: Socket<ServerToClientEvents, ClientToServerEvents> =
-            io(SERVER_URL);
+    return (
+        <SafeAreaProvider>
+            <StatusBar style="auto" />
+            <AuthProvider>
+                <RootNavigator />
+            </AuthProvider>
+        </SafeAreaProvider>
+    );
+}
 
-        newSocket.on("connect", () => {
-            newSocket.emit("client:register", "mobile");
-        });
-        newSocket.on("connect_error", (_err) => {
-            newSocket.disconnect();
-        });
-        setSocket(newSocket);
-        return () => {
-            newSocket.disconnect();
-        };
-    }, []);
+function RootNavigator() {
+    const { isLoggedIn } = useAuth();
 
     return (
         <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(tabs)" />
+            <Stack.Protected guard={!isLoggedIn}>
+                <Stack.Screen name="sign-in" />
+            </Stack.Protected>
+            <Stack.Protected guard={isLoggedIn}>
+                <Stack.Screen name="(tabs)" />
+            </Stack.Protected>
         </Stack>
     );
 }

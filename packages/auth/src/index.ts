@@ -13,16 +13,20 @@ const STATIC_USERS = [
     },
     {
         id: "usr_player_1",
-        username: "investigator",
+        username: "detective",
         password: "password123",
         role: "player",
     },
 ] as const;
 
 export function authenticate(
-    username: string,
-    password: string,
+    username: unknown,
+    password: unknown,
 ): UserCredentials | null {
+    if (typeof username !== "string" || typeof password !== "string") {
+        return null;
+    }
+
     const match = STATIC_USERS.find(
         (u) =>
             u.username.trim() === username.toLowerCase() &&
