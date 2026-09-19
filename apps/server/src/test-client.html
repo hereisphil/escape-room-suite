@@ -14,7 +14,7 @@
 
             socket.on("connect", () => {
                 document.getElementById("status").textContent = "Connected";
-                socket.emit("register-client", "test");
+                socket.emit("client:register", "test");
             });
 
             socket.on("disconnect", () => {

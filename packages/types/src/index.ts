@@ -9,3 +9,28 @@ export interface EscapeRoomType {
 }
 
 export type ClientType = "mobile" | "tablet" | "web" | "test";
+
+/* -------------------------------------------------------------------------- */
+/*                              Socket.io Events                              */
+/* -------------------------------------------------------------------------- */
+
+// Events emitted by the Server and handled by the Client
+export interface ServerToClientEvents {
+    "room:load": (rooms: EscapeRoomType[]) => void;
+}
+
+// Events emitted by the Client and handled by the Server
+export interface ClientToServerEvents {
+    "client:register": (clientType: ClientType) => void;
+}
+
+// Custom properties stored in socket.data
+interface User {
+    id: string;
+    username: string;
+    role: "admin" | "player";
+}
+export interface SocketData {
+    user: User;
+    clientType: ClientType;
+}

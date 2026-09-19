@@ -1,4 +1,5 @@
 import { io, Socket } from "socket.io-client";
+import type { ServerToClientEvents, ClientToServerEvents } from "@global-types";
 import LoginForm from "./components/LoginForm";
 import { useState } from "react";
 import {
@@ -33,28 +34,26 @@ function App() {
         setAuthError(null);
 
         // Initialize socket with the user's input credentials
-        const newSocket = io(SERVER_URL, {
-            auth: { username, password },
-        });
+        const newSocket: Socket<ServerToClientEvents, ClientToServerEvents> =
+            io(SERVER_URL, {
+                auth: { username, password },
+            });
 
         newSocket.on("connect", () => {
             setIsAuthenticated(true);
-            newSocket.emit("register-client", "web");
+            newSocket.emit("client:register", "web");
         });
 
-        newSocket.on("load-rooms", (data) => {
-            console.log(data);
-            setAllRooms(data);
+        newSocket.on("room:load", (rooms) => {
+            setAllRooms(rooms);
         });
 
         newSocket.on("connect_error", (err) => {
-            console.log(err);
             setAuthError(err.message);
             newSocket.disconnect();
         });
 
-        setSocket(newSocket);
-        console.log(socket);
+        if (socket) setSocket(newSocket);
     };
 
     if (!isAuthenticated) {
