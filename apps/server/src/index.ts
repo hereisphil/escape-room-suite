@@ -68,17 +68,17 @@ const connectedClients: ConnectedClients = {
 /* -------------------------------------------------------------------------- */
 /*                           Middleware: Auth Guard                           */
 /* -------------------------------------------------------------------------- */
-io.use((socket, next) => {
-    const { username, password } = socket.handshake.auth;
-    const user = authenticate(username, password);
-    if (!user) {
-        console.log("Unauthorized attempted connection.");
-        next(new Error("Unauthorized: Invalid credentials"));
-    }
-    // Store user info directly on the socket instance
-    socket.data.user = user;
-    next();
-});
+// io.use((socket, next) => {
+//     const { username, password } = socket.handshake.auth;
+//     const user = authenticate(username, password);
+//     if (!user) {
+//         console.log("Unauthorized attempted connection.");
+//         next(new Error("Unauthorized: Invalid credentials"));
+//     }
+//     // Store user info directly on the socket instance
+//     socket.data.user = user;
+//     next();
+// });
 
 io.on("connection", (socket) => {
     console.log("Client connected:", socket.id);
@@ -91,6 +91,15 @@ io.on("connection", (socket) => {
         console.log(
             `${clientType} client connected. Total: ${connectedClients[clientType]}`,
         );
+    });
+
+    socket.on("message:send", (message) => {
+        console.log(message);
+        socket.emit("message:received", message);
+    });
+
+    socket.on("admin:error", (error) => {
+        console.log(error);
     });
 });
 
