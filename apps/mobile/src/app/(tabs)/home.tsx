@@ -1,4 +1,3 @@
-import { StatusBar } from "expo-status-bar";
 import { Pressable, StyleSheet, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useEffect, useState } from "react";
@@ -33,8 +32,6 @@ export default function Home() {
             <Pressable style={styles.button} onPress={logout}>
                 <Text style={styles.buttonText}>Logout</Text>
             </Pressable>
-
-            <StatusBar style="auto" />
         </SafeAreaView>
     );
 }
