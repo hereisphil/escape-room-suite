@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { io } from "socket.io-client";
 import type { Socket } from "socket.io-client";
@@ -23,6 +23,53 @@ function resolveServerUrl(override?: string): string {
     }
 
     return SERVER_URL;
+}
+
+const AUTH_STORAGE_KEY = "escape-room.auth";
+
+// sessionStorage is browser only, undefined on mobile
+function canUseSessionStorage(): boolean {
+    try {
+        return typeof sessionStorage !== "undefined";
+    } catch {
+        return false;
+    }
+}
+
+function readStoredCredentials(): LoginCredentials | null {
+    if (!canUseSessionStorage()) return null;
+
+    const raw = sessionStorage.getItem(AUTH_STORAGE_KEY);
+    if (!raw) return null;
+
+    try {
+        const parsed: unknown = JSON.parse(raw);
+        if (
+            parsed &&
+            typeof parsed === "object" &&
+            "username" in parsed &&
+            "password" in parsed &&
+            typeof parsed.username === "string" &&
+            typeof parsed.password === "string"
+        ) {
+            return { username: parsed.username, password: parsed.password };
+        }
+    } catch {
+        // Corrupt JSON, drop it.
+    }
+
+    sessionStorage.removeItem(AUTH_STORAGE_KEY);
+    return null;
+}
+
+function writeStoredCredentials(credentials: LoginCredentials) {
+    if (!canUseSessionStorage()) return;
+    sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(credentials));
+}
+
+function clearStoredCredentials() {
+    if (!canUseSessionStorage()) return;
+    sessionStorage.removeItem(AUTH_STORAGE_KEY);
 }
 
 // Custom socket type every app shares, events are typed the same everywhere
@@ -63,41 +110,74 @@ export function AuthProvider({
 }: AuthProviderProps) {
     const [socket, setSocket] = useState<AppSocket | null>(null);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [isConnecting, setIsConnecting] = useState(false);
+    const [isConnecting, setIsConnecting] = useState(
+        () => readStoredCredentials() !== null,
+    );
     const [authError, setAuthError] = useState<string | null>(null);
+    const socketRef = useRef<AppSocket | null>(null);
 
     function login({ username, password }: LoginCredentials) {
+        socketRef.current?.disconnect();
+
         setAuthError(null);
         setIsConnecting(true);
 
+        const credentials: LoginCredentials = { username, password };
         const newSocket: AppSocket = io(resolveServerUrl(serverUrl), {
-            auth: { username, password },
+            auth: credentials,
         });
 
+        let hasConnected = false;
+
         newSocket.on("connect", () => {
+            hasConnected = true;
+            writeStoredCredentials(credentials);
             setIsConnecting(false);
             setIsLoggedIn(true);
             newSocket.emit("client:register", clientType);
         });
 
         newSocket.on("connect_error", (error) => {
+            if (hasConnected) return;
+
             setIsConnecting(false);
             setIsLoggedIn(false);
             setAuthError(error.message);
             newSocket.disconnect();
+            socketRef.current = null;
             setSocket(null);
+
+            if (error.message.includes("Unauthorized")) {
+                clearStoredCredentials();
+            }
         });
 
+        socketRef.current = newSocket;
         setSocket(newSocket);
     }
 
+    const loginRef = useRef(login);
+    loginRef.current = login;
+
     function logout() {
-        if (socket) socket.disconnect();
+        socketRef.current?.disconnect();
+        socketRef.current = null;
+        clearStoredCredentials();
         setSocket(null);
         setIsLoggedIn(false);
         setIsConnecting(false);
         setAuthError(null);
     }
+
+    useEffect(() => {
+        const saved = readStoredCredentials();
+        if (saved) loginRef.current(saved);
+
+        return () => {
+            socketRef.current?.disconnect();
+            socketRef.current = null;
+        };
+    }, []);
 
     return (
         <AuthContext.Provider
