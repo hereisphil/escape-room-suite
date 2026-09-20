@@ -1,7 +1,9 @@
 import express from "express";
 import { createServer } from "http";
+import { networkInterfaces } from "os";
 import { Server } from "socket.io";
 import cors from "cors";
+import { SERVER_PORT } from "@global-types";
 import type {
     ClientType,
     EscapeRoomType,
@@ -103,8 +105,24 @@ io.on("connection", (socket) => {
     });
 });
 
-server.listen(3001, () => {
-    console.log(`Server running at http://localhost:3001`);
+function lanIPv4Addresses(): string[] {
+    const addresses: string[] = [];
+    for (const addrs of Object.values(networkInterfaces())) {
+        for (const addr of addrs ?? []) {
+            const family = String(addr.family);
+            if ((family === "IPv4" || family === "4") && !addr.internal) {
+                addresses.push(addr.address);
+            }
+        }
+    }
+    return addresses;
+}
+
+server.listen(SERVER_PORT, "0.0.0.0", () => {
+    console.log(`Server running at http://localhost:${SERVER_PORT}`);
+    for (const ip of lanIPv4Addresses()) {
+        console.log(`LAN: http://${ip}:${SERVER_PORT}`);
+    }
     console.log("Waiting for clients to connect...");
 });
 

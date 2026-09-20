@@ -1,14 +1,21 @@
 import { Stack } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
+import Constants from "expo-constants";
 import { AuthProvider, useAuth } from "@global-client-auth";
+import { SERVER_PORT, SERVER_URL } from "@global-types";
 import KeyboardLayout from "@/components/KeyboardLayout";
+
+function mobileServerUrl(): string {
+    const host = Constants.expoConfig?.hostUri?.split(":")[0];
+    return host ? `http://${host}:${SERVER_PORT}` : SERVER_URL;
+}
 
 export default function RootLayout() {
     return (
         <SafeAreaProvider>
             <StatusBar style="auto" />
-            <AuthProvider clientType="mobile">
+            <AuthProvider clientType="mobile" serverUrl={mobileServerUrl()}>
                 <KeyboardLayout>
                     <RootNavigator />
                 </KeyboardLayout>

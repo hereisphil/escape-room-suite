@@ -1,5 +1,9 @@
-// Not a type but useful to have here:
-export const SERVER_URL = "http://192.168.1.105:3001";
+export const SERVER_PORT = 3001;
+
+// Fallback for native apps when the LAN host cannot be inferred.
+// Wi-Fi and Ethernet usually get different DHCP addresses, so prefer
+// resolving the host at runtime (see AuthProvider / Expo hostUri).
+export const SERVER_URL = `http://192.168.1.237:${SERVER_PORT}`;
 
 export interface LoginCredentials {
     username: string;
