@@ -1,4 +1,3 @@
-import { StatusBar } from "expo-status-bar";
 import {
     Alert,
     Pressable,
@@ -6,8 +5,6 @@ import {
     Text,
     TextInput,
     View,
-    KeyboardAvoidingView,
-    Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from "react";
@@ -52,56 +49,46 @@ export default function SignInScreen() {
 
     return (
         <SafeAreaView style={styles.container}>
-            <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : undefined}
+            <Text style={styles.title}>Mobile Login</Text>
+
+            {errorMessage ? (
+                <Text style={styles.error}>{errorMessage}</Text>
+            ) : null}
+
+            <TextInput
+                style={styles.input}
+                placeholder="Username"
+                autoCapitalize="none"
+                autoCorrect={false}
+                onChangeText={setUsername}
+                value={username}
+            />
+            <TextInput
+                style={styles.input}
+                placeholder="Password"
+                secureTextEntry
+                onChangeText={setPassword}
+                value={password}
+            />
+
+            <Pressable
+                style={styles.button}
+                onPress={handleSubmit}
+                disabled={isConnecting}
             >
-                <Text style={styles.title}>Mobile Login</Text>
+                <Text style={styles.buttonText}>
+                    {isConnecting ? "Logging in..." : "Submit"}
+                </Text>
+            </Pressable>
 
-                {errorMessage ? (
-                    <Text style={styles.error}>{errorMessage}</Text>
-                ) : null}
-
-                <TextInput
-                    style={styles.input}
-                    placeholder="Username"
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    onChangeText={setUsername}
-                    value={username}
-                />
-                <TextInput
-                    style={styles.input}
-                    placeholder="Password"
-                    secureTextEntry
-                    onChangeText={setPassword}
-                    value={password}
-                />
-
-                <Pressable
-                    style={styles.button}
-                    onPress={handleSubmit}
-                    disabled={isConnecting}
-                >
-                    <Text style={styles.buttonText}>
-                        {isConnecting ? "Logging in..." : "Submit"}
-                    </Text>
+            <View style={styles.copyBox}>
+                <Pressable onPress={copyUsername}>
+                    <Text style={styles.hint}>Copy username: detective</Text>
                 </Pressable>
-
-                <View style={styles.copyBox}>
-                    <Pressable onPress={copyUsername}>
-                        <Text style={styles.hint}>
-                            Copy username: detective
-                        </Text>
-                    </Pressable>
-                    <Pressable onPress={copyPassword}>
-                        <Text style={styles.hint}>
-                            Copy password: password123
-                        </Text>
-                    </Pressable>
-                </View>
-
-                <StatusBar style="auto" />
-            </KeyboardAvoidingView>
+                <Pressable onPress={copyPassword}>
+                    <Text style={styles.hint}>Copy password: password123</Text>
+                </Pressable>
+            </View>
         </SafeAreaView>
     );
 }

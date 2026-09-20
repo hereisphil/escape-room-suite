@@ -2,18 +2,23 @@ import { Stack } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { AuthProvider, useAuth } from "@global-client-auth";
+import KeyboardLayout from "@/components/KeyboardLayout";
 
 export default function RootLayout() {
     return (
         <SafeAreaProvider>
             <StatusBar style="auto" />
             <AuthProvider clientType="mobile">
-                <RootNavigator />
+                <KeyboardLayout>
+                    <RootNavigator />
+                </KeyboardLayout>
             </AuthProvider>
         </SafeAreaProvider>
     );
 }
 
+// This has to be its own component so it can read the context
+// that <AuthProvider> creates above it.
 function RootNavigator() {
     const { isLoggedIn } = useAuth();
 
