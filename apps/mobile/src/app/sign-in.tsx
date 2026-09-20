@@ -1,75 +1,107 @@
-import * as Clipboard from "expo-clipboard";
+import { StatusBar } from "expo-status-bar";
 import {
+    Alert,
     Pressable,
     StyleSheet,
     Text,
     TextInput,
-    Alert,
     View,
+    KeyboardAvoidingView,
+    Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from "react";
-import { useAuth } from "@/auth-context";
+import { useAuth } from "@global-client-auth";
+import * as Clipboard from "expo-clipboard";
 
 export default function SignInScreen() {
-    const { login, authError } = useAuth();
+    const { login, isConnecting, authError } = useAuth();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
+    const [formError, setFormError] = useState("");
 
     const copyUsername = async () => {
-        await Clipboard.setStringAsync("detective");
-        Alert.alert("Username copied to clipboard.");
-    };
-    const copyPassword = async () => {
-        await Clipboard.setStringAsync("password123");
-        Alert.alert("Password copied to clipboard.");
+        try {
+            await Clipboard.setStringAsync("detective");
+            Alert.alert("Username copied.");
+        } catch (_error) {
+            Alert.alert("Couldn't copy. Try again.");
+        }
     };
 
-    const handleLogin = () => {
+    const copyPassword = async () => {
+        try {
+            await Clipboard.setStringAsync("password123");
+            Alert.alert("Password copied.");
+        } catch (_error) {
+            Alert.alert("Couldn't copy. Try again.");
+        }
+    };
+
+    function handleSubmit() {
         if (!username || !password) {
-            const message = "All fields are required";
-            setError(message);
-            Alert.alert(message);
+            setFormError("All fields are required");
             return;
         }
-        setError("");
+        setFormError("");
         login({ username, password });
-    };
+    }
 
-    const displayError = error || authError;
+    // Show our own form error first, otherwise whatever the server said.
+    const errorMessage = formError || authError;
 
     return (
         <SafeAreaView style={styles.container}>
-            {displayError && <Text style={styles.error}>{displayError}</Text>}
-            <TextInput
-                style={styles.input}
-                onChangeText={setUsername}
-                value={username}
-                autoCapitalize="none"
-                autoCorrect={false}
-                placeholder="Username"
-            />
-            <TextInput
-                style={styles.input}
-                onChangeText={setPassword}
-                value={password}
-                secureTextEntry
-                placeholder="Password"
-            />
-            <Pressable onPress={handleLogin} style={styles.button}>
-                <Text style={{ color: "white", fontWeight: "600" }}>
-                    Submit
-                </Text>
-            </Pressable>
-            <View style={styles.credentials}>
-                <Pressable onPress={copyUsername}>
-                    <Text>Username: detective</Text>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : undefined}
+            >
+                <Text style={styles.title}>Mobile Login</Text>
+
+                {errorMessage ? (
+                    <Text style={styles.error}>{errorMessage}</Text>
+                ) : null}
+
+                <TextInput
+                    style={styles.input}
+                    placeholder="Username"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    onChangeText={setUsername}
+                    value={username}
+                />
+                <TextInput
+                    style={styles.input}
+                    placeholder="Password"
+                    secureTextEntry
+                    onChangeText={setPassword}
+                    value={password}
+                />
+
+                <Pressable
+                    style={styles.button}
+                    onPress={handleSubmit}
+                    disabled={isConnecting}
+                >
+                    <Text style={styles.buttonText}>
+                        {isConnecting ? "Logging in..." : "Submit"}
+                    </Text>
                 </Pressable>
-                <Pressable onPress={copyPassword}>
-                    <Text>Password: password123</Text>
-                </Pressable>
-            </View>
+
+                <View style={styles.copyBox}>
+                    <Pressable onPress={copyUsername}>
+                        <Text style={styles.hint}>
+                            Copy username: detective
+                        </Text>
+                    </Pressable>
+                    <Pressable onPress={copyPassword}>
+                        <Text style={styles.hint}>
+                            Copy password: password123
+                        </Text>
+                    </Pressable>
+                </View>
+
+                <StatusBar style="auto" />
+            </KeyboardAvoidingView>
         </SafeAreaView>
     );
 }
@@ -81,6 +113,11 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
     },
+    title: {
+        fontSize: 20,
+        fontWeight: "bold",
+        marginBottom: 12,
+    },
     error: {
         backgroundColor: "#ccc",
         color: "red",
@@ -90,28 +127,30 @@ const styles = StyleSheet.create({
         borderWidth: 2,
     },
     input: {
-        minWidth: 150,
+        minWidth: 200,
         height: 40,
         margin: 12,
         borderWidth: 1,
         padding: 10,
     },
     button: {
-        padding: 12,
-        backgroundColor: "skyblue",
-        borderRadius: 8,
+        backgroundColor: "black",
+        paddingVertical: 10,
+        paddingHorizontal: 24,
+        borderRadius: 6,
     },
-    credentials: {
-        marginTop: 12,
-        display: "flex",
-        flexDirection: "column",
-        gap: 8,
-        backgroundColor: "#fefce8",
-        alignItems: "flex-start",
-        justifyContent: "center",
-        borderColor: "#fff085",
-        borderWidth: 2,
-        borderRadius: 8,
-        padding: 12,
+    buttonText: {
+        color: "white",
+    },
+    copyBox: {
+        backgroundColor: "#f9f9f9",
+        padding: 6,
+        borderRadius: 4,
+        marginTop: 16,
+    },
+    hint: {
+        padding: 8,
+        color: "#666",
+        fontWeight: "600",
     },
 });

@@ -72,11 +72,11 @@ export function SendMessage({
                     <DialogHeader>
                         <DialogTitle>Send a message</DialogTitle>
                         <DialogDescription>
-                            You're sending a message to Room:{<br />}
+                            You're sending a message to Room:{" "}
                             {<strong>{`${roomName}`}</strong>}.
                         </DialogDescription>
                     </DialogHeader>
-                    <FieldGroup>
+                    <FieldGroup className="mt-4">
                         <Field>
                             <FieldLabel htmlFor="message">Message</FieldLabel>
                             <FieldDescription>

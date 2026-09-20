@@ -3,6 +3,7 @@
     "version": "1.0.0",
     "main": "expo-router/entry",
     "dependencies": {
+        "@global-client-auth": "workspace:*",
         "@global-types": "workspace:*",
         "expo": "~57.0.22",
         "expo-clipboard": "~57.0.2",

@@ -1,13 +1,5 @@
-import { io, Socket } from "socket.io-client";
-import type {
-    ServerToClientEvents,
-    ClientToServerEvents,
-    LoginCredentials,
-    EscapeRoomType,
-} from "@global-types";
-import { SERVER_URL } from "@global-types";
 import LoginForm from "./components/LoginForm";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Select,
     SelectContent,
@@ -26,39 +18,39 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { SendMessage } from "./components/SendMessage";
+import { useAuth } from "@global-client-auth";
+
+import { type EscapeRoomType } from "@global-types";
 
 function App() {
-    const [socket, setSocket] = useState<Socket | null>(null);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [authError, setAuthError] = useState<string | null>(null);
+    // The socket and the login logic from shared global AuthProvider
+    const { socket, isLoggedIn, isConnecting, authError, login, logout } =
+        useAuth();
     const [currentRoom, setCurrentRoom] = useState<EscapeRoomType>();
     const [allRooms, setAllRooms] = useState<EscapeRoomType[]>([]);
 
-    const handleLogin = ({ username, password }: LoginCredentials) => {
-        setAuthError(null);
-        const newSocket: Socket<ServerToClientEvents, ClientToServerEvents> =
-            io(SERVER_URL, {
-                auth: { username, password },
-            });
-        newSocket.on("connect", () => {
-            setIsAuthenticated(true);
-            newSocket.emit("client:register", "web");
-        });
-        newSocket.on("room:load", (rooms) => {
+    useEffect(() => {
+        // Before login there is no socket yet, early return stops useEffect
+        if (!socket) return;
+
+        socket.on("room:load", (rooms) => {
             setAllRooms(rooms);
         });
-        newSocket.on("connect_error", (err) => {
-            setAuthError(err.message);
-            newSocket.disconnect();
-        });
-        setSocket(newSocket);
-    };
 
-    if (!isAuthenticated) {
+        return () => {
+            socket.off("room:load");
+        };
+    }, [socket]);
+
+    if (!isLoggedIn || !socket) {
         return (
             <main className="flex justify-center items-center">
                 <section className="grow max-w-xl flex flex-col items-center">
-                    <LoginForm onLogin={handleLogin} errorMessage={authError} />
+                    <LoginForm
+                        onLogin={login}
+                        isLoading={isConnecting}
+                        errorMessage={authError}
+                    />
                     <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-900 shadow-sm w-full max-w-sm tracking-wider">
                         <p className="mt-1 font-bold">
                             Use the following account to log in:
@@ -79,76 +71,68 @@ function App() {
         );
     }
 
-    if (!socket) {
-        return (
-            <main>
-                <h1>Disconnected</h1>
-            </main>
-        );
-    } else {
-        return (
-            <main className="py-6 px-2">
-                <header className="flex justify-between p-2 mb-4">
-                    <Select<EscapeRoomType>
-                        value={currentRoom ?? null}
-                        onValueChange={(selectedRoom) =>
-                            setCurrentRoom(selectedRoom ?? undefined)
-                        }
-                        itemToStringValue={(room) => String(room.id)}
-                        itemToStringLabel={(room) => room.slug}
-                        isItemEqualToValue={(a, b) => a.id === b.id}
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select a room" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {allRooms?.map((room) => (
-                                <SelectItem key={room.id} value={room}>
-                                    {room.slug}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                    <h1>Web Admin</h1>
-                    <Button>Logout</Button>
-                </header>
-                <section className="flex items-center justify-center">
-                    {currentRoom ? (
-                        <Card className="relative mx-auto w-full max-w-3xl pt-0">
-                            <div className="absolute inset-0 z-30 aspect-video bg-black/35" />
-                            <img
-                                src="https://avatar.vercel.sh/shadcn1"
-                                alt="Event cover"
-                                className="relative z-20 aspect-video w-full object-cover brightness-60 grayscale dark:brightness-40"
+    return (
+        <main className="py-6 px-2">
+            <header className="flex justify-between p-2 mb-4">
+                <Select<EscapeRoomType>
+                    value={currentRoom ?? null}
+                    onValueChange={(selectedRoom) =>
+                        setCurrentRoom(selectedRoom ?? undefined)
+                    }
+                    itemToStringValue={(room) => String(room.id)}
+                    itemToStringLabel={(room) => room.slug}
+                    isItemEqualToValue={(a, b) => a.id === b.id}
+                >
+                    <SelectTrigger>
+                        <SelectValue placeholder="Select a room" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {allRooms?.map((room) => (
+                            <SelectItem key={room.id} value={room}>
+                                {room.slug}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                <h1>Web Admin</h1>
+                <Button onClick={logout}>Logout</Button>
+            </header>
+            <section className="flex items-center justify-center">
+                {currentRoom ? (
+                    <Card className="relative mx-auto w-full max-w-3xl pt-0">
+                        <div className="absolute inset-0 z-30 aspect-video bg-black/35" />
+                        <img
+                            src="https://avatar.vercel.sh/shadcn1"
+                            alt="Event cover"
+                            className="relative z-20 aspect-video w-full object-cover brightness-60 grayscale dark:brightness-40"
+                        />
+                        <CardHeader>
+                            <CardAction>
+                                <Badge variant="default">Live</Badge>
+                            </CardAction>
+                            <CardTitle>{currentRoom?.slug}</CardTitle>
+                            <CardDescription>
+                                {currentRoom?.summary}
+                            </CardDescription>
+                        </CardHeader>
+                        <CardFooter className="flex justify-around">
+                            <SendMessage
+                                roomName={currentRoom.name}
+                                socket={socket}
                             />
-                            <CardHeader>
-                                <CardAction>
-                                    <Badge variant="default">Live</Badge>
-                                </CardAction>
-                                <CardTitle>{currentRoom?.slug}</CardTitle>
-                                <CardDescription>
-                                    {currentRoom?.summary}
-                                </CardDescription>
-                            </CardHeader>
-                            <CardFooter className="flex justify-around">
-                                <SendMessage
-                                    roomName={currentRoom.name}
-                                    socket={socket}
-                                />
-                                <Button className="w-full max-w-xs">
-                                    View Event
-                                </Button>
-                            </CardFooter>
-                        </Card>
-                    ) : (
-                        <h2 className="bg-accent rounded-sm py-4 px-2">
-                            Select a Room to View.
-                        </h2>
-                    )}
-                </section>
-            </main>
-        );
-    }
+                            <Button className="w-full max-w-xs">
+                                View Event
+                            </Button>
+                        </CardFooter>
+                    </Card>
+                ) : (
+                    <h2 className="bg-accent rounded-sm py-4 px-2">
+                        Select a Room to View.
+                    </h2>
+                )}
+            </section>
+        </main>
+    );
 }
 
 export default App;
