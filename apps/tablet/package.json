@@ -1,12 +1,19 @@
 {
     "name": "tablet",
     "version": "1.0.0",
-    "main": "index.ts",
+    "main": "expo-router/entry",
     "dependencies": {
+        "@global-client-auth": "workspace:*",
+        "@global-theme": "workspace:*",
+        "@global-types": "workspace:*",
         "expo": "~57.0.22",
+        "expo-clipboard": "^57.0.2",
+        "expo-constants": "^57.0.19",
+        "expo-router": "^57.0.22",
         "expo-status-bar": "~57.0.1",
         "react": "19.2.3",
-        "react-native": "0.86.3"
+        "react-native": "0.86.3",
+        "react-native-safe-area-context": "^5.10.0"
     },
     "devDependencies": {
         "@types/react": "~19.2.2",
