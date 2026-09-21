@@ -10,7 +10,7 @@ import type { ReactNode } from "react";
 // 1. the screen slides up so the keyboard doesn't cover the inputs
 // 2. content can scroll when landscape + keyboard leave too little height
 // 3. dragging the scroll view dismisses the keyboard
-export default function KeyboardLayout({ children }: { children: ReactNode }) {
+export function KeyboardLayout({ children }: { children: ReactNode }) {
     return (
         <KeyboardAvoidingView
             style={styles.fill}
@@ -33,6 +33,8 @@ const styles = StyleSheet.create({
     fill: {
         flex: 1,
     },
+    // flexGrow (not flex) lets short screens stay full-height for centering,
+    // while still growing when content is taller than the keyboard-shrunk viewport.
     scrollContent: {
         flexGrow: 1,
     },

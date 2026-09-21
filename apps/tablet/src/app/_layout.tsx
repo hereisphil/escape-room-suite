@@ -4,7 +4,7 @@ import { StatusBar } from "expo-status-bar";
 import Constants from "expo-constants";
 import { AuthProvider, useAuth } from "@global-client-auth";
 import { SERVER_PORT, SERVER_URL } from "@global-types";
-import KeyboardLayout from "@/components/KeyboardLayout";
+import { KeyboardLayout } from "@global-client-ui";
 
 function tabletServerUrl(): string {
     const host = Constants.expoConfig?.hostUri?.split(":")[0];
