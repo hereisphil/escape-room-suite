@@ -4,6 +4,7 @@
     "main": "expo-router/entry",
     "dependencies": {
         "@global-client-auth": "workspace:*",
+        "@global-client-ui": "workspace:*",
         "@global-theme": "workspace:*",
         "@global-types": "workspace:*",
         "expo": "~57.0.22",

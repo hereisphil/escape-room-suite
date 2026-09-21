@@ -6,7 +6,7 @@ import { AuthProvider, useAuth } from "@global-client-auth";
 import { SERVER_PORT, SERVER_URL } from "@global-types";
 import { KeyboardLayout } from "@global-client-ui";
 
-function mobileServerUrl(): string {
+function tabletServerUrl(): string {
     const host = Constants.expoConfig?.hostUri?.split(":")[0];
     return host ? `http://${host}:${SERVER_PORT}` : SERVER_URL;
 }
@@ -15,7 +15,7 @@ export default function RootLayout() {
     return (
         <SafeAreaProvider>
             <StatusBar style="auto" />
-            <AuthProvider clientType="mobile" serverUrl={mobileServerUrl()}>
+            <AuthProvider clientType="tablet" serverUrl={tabletServerUrl()}>
                 <KeyboardLayout>
                     <RootNavigator />
                 </KeyboardLayout>
@@ -35,7 +35,7 @@ function RootNavigator() {
                 <Stack.Screen name="sign-in" />
             </Stack.Protected>
             <Stack.Protected guard={isLoggedIn}>
-                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="index" />
             </Stack.Protected>
         </Stack>
     );
