@@ -12,8 +12,11 @@ export interface LoginCredentials {
 
 export interface EscapeRoomType {
     id: number;
-    slug: string;
-    name: string;
+    slug: "Deep-Sea" | "Bunker" | "Clockwork";
+    name:
+        | "Deep-Sea Abyssal Research Station"
+        | "Decommissioned Cold War Bunker"
+        | "Abandoned Clockwork Archive";
     summary: string;
 }
 

@@ -1,32 +1,24 @@
-import { Pressable, StyleSheet, Text } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useEffect, useState } from "react";
-import type { EscapeRoomType } from "@global-types";
 import { useAuth } from "@global-client-auth";
 import { colors, radius } from "@global-theme";
 
 export default function Home() {
-    const { socket, logout } = useAuth();
-    const [rooms, setRooms] = useState<EscapeRoomType[]>([]);
+    const { rooms, logout } = useAuth();
 
-    useEffect(() => {
-        if (!socket) return;
-
-        socket.on("room:load", (loadedRooms) => {
-            setRooms(loadedRooms);
-        });
-
-        // Stop listening if the socket changes or the screen goes away.
-        return () => {
-            socket.off("room:load");
-        };
-    }, [socket]);
+    if (!rooms) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <ActivityIndicator size="large" />
+            </SafeAreaView>
+        );
+    }
 
     return (
         <SafeAreaView style={styles.container}>
             <Text style={styles.title}>Connected</Text>
 
-            {rooms.map((room) => (
+            {rooms?.map((room) => (
                 <Text key={room.id} style={styles.room}>
                     {room.name}
                 </Text>

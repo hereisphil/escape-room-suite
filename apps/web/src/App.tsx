@@ -1,5 +1,5 @@
 import LoginForm from "./components/LoginForm";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
     Select,
     SelectContent,
@@ -24,23 +24,9 @@ import { type EscapeRoomType } from "@global-types";
 
 function App() {
     // The socket and the login logic from shared global AuthProvider
-    const { socket, isLoggedIn, isConnecting, authError, login, logout } =
+    const { socket, isLoggedIn, isConnecting, authError, login, logout, rooms } =
         useAuth();
     const [currentRoom, setCurrentRoom] = useState<EscapeRoomType>();
-    const [allRooms, setAllRooms] = useState<EscapeRoomType[]>([]);
-
-    useEffect(() => {
-        // Before login there is no socket yet, early return stops useEffect
-        if (!socket) return;
-
-        socket.on("room:load", (rooms) => {
-            setAllRooms(rooms);
-        });
-
-        return () => {
-            socket.off("room:load");
-        };
-    }, [socket]);
 
     if (!isLoggedIn || !socket) {
         return (
@@ -87,7 +73,7 @@ function App() {
                         <SelectValue placeholder="Select a room" />
                     </SelectTrigger>
                     <SelectContent>
-                        {allRooms?.map((room) => (
+                        {rooms?.map((room) => (
                             <SelectItem key={room.id} value={room}>
                                 {room.slug}
                             </SelectItem>

@@ -6,6 +6,7 @@ import { SERVER_PORT, SERVER_URL } from "@global-types";
 import type {
     ClientToServerEvents,
     ClientType,
+    EscapeRoomType,
     LoginCredentials,
     ServerToClientEvents,
 } from "@global-types";
@@ -80,6 +81,7 @@ type AuthValue = {
     isLoggedIn: boolean;
     isConnecting: boolean;
     authError: string | null;
+    rooms: EscapeRoomType[] | null;
     login: (credentials: LoginCredentials) => void;
     logout: () => void;
 };
@@ -114,6 +116,7 @@ export function AuthProvider({
         () => readStoredCredentials() !== null,
     );
     const [authError, setAuthError] = useState<string | null>(null);
+    const [rooms, setRooms] = useState<EscapeRoomType[] | null>(null);
     const socketRef = useRef<AppSocket | null>(null);
 
     function login({ username, password }: LoginCredentials) {
@@ -121,6 +124,7 @@ export function AuthProvider({
 
         setAuthError(null);
         setIsConnecting(true);
+        setRooms(null);
 
         const credentials: LoginCredentials = { username, password };
         const newSocket: AppSocket = io(resolveServerUrl(serverUrl), {
@@ -128,6 +132,12 @@ export function AuthProvider({
         });
 
         let hasConnected = false;
+
+        // Listen before connect. The server emits room:load in its connection
+        // handler, which can arrive before any screen's useEffect runs.
+        newSocket.on("room:load", (loadedRooms) => {
+            setRooms(loadedRooms);
+        });
 
         newSocket.on("connect", () => {
             hasConnected = true;
@@ -143,6 +153,7 @@ export function AuthProvider({
             setIsConnecting(false);
             setIsLoggedIn(false);
             setAuthError(error.message);
+            setRooms(null);
             newSocket.disconnect();
             socketRef.current = null;
             setSocket(null);
@@ -167,6 +178,7 @@ export function AuthProvider({
         setIsLoggedIn(false);
         setIsConnecting(false);
         setAuthError(null);
+        setRooms(null);
     }
 
     useEffect(() => {
@@ -186,6 +198,7 @@ export function AuthProvider({
                 isLoggedIn,
                 isConnecting,
                 authError,
+                rooms,
                 login,
                 logout,
             }}
