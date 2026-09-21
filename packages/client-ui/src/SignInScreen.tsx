@@ -62,11 +62,13 @@ export function SignInScreen({ title }: SignInScreenProps) {
         <SafeAreaView style={styles.container}>
             <Text style={styles.title}>{title}</Text>
 
-            {errorMessage && <Text style={styles.error}>{errorMessage}</Text>}
+            {errorMessage ? (
+                <Text style={styles.error}>{errorMessage}</Text>
+            ) : null}
 
-            {copiedMessage && (
+            {copiedMessage ? (
                 <Text style={styles.copied}>{copiedMessage}</Text>
-            )}
+            ) : null}
 
             <TextInput
                 style={styles.input}
