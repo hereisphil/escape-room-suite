@@ -1,31 +1,30 @@
 import {
-    Keyboard,
     KeyboardAvoidingView,
     Platform,
+    ScrollView,
     StyleSheet,
-    TouchableWithoutFeedback,
-    View,
 } from "react-native";
 import type { ReactNode } from "react";
 
 // Wraps the whole app so every screen gets the same keyboard behavior:
 // 1. the screen slides up so the keyboard doesn't cover the inputs
-// 2. tapping an empty area closes the keyboard 🎉
-// WHY DON'T MORE APPS ALWAYS APPLY THIS! IT'S ONE OF MY BIGGEST GRIPES!!!
+// 2. content can scroll when landscape + keyboard leave too little height
+// 3. dragging the scroll view dismisses the keyboard
 export default function KeyboardLayout({ children }: { children: ReactNode }) {
     return (
         <KeyboardAvoidingView
             style={styles.fill}
             behavior={Platform.OS === "ios" ? "padding" : undefined}
         >
-            {/* TouchableWithoutFeedback only allows ONE child, so everything
-                goes inside this single <View>. */}
-            <TouchableWithoutFeedback
-                onPress={Keyboard.dismiss}
-                accessible={false}
+            <ScrollView
+                style={styles.fill}
+                contentContainerStyle={styles.scrollContent}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="on-drag"
+                bounces={false}
             >
-                <View style={styles.fill}>{children}</View>
-            </TouchableWithoutFeedback>
+                {children}
+            </ScrollView>
         </KeyboardAvoidingView>
     );
 }
@@ -33,5 +32,8 @@ export default function KeyboardLayout({ children }: { children: ReactNode }) {
 const styles = StyleSheet.create({
     fill: {
         flex: 1,
+    },
+    scrollContent: {
+        flexGrow: 1,
     },
 });

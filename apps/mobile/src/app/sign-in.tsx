@@ -106,10 +106,12 @@ export default function SignInScreen() {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
+        flexGrow: 1,
         backgroundColor: colors.background,
         alignItems: "center",
         justifyContent: "center",
+        paddingVertical: 24,
+        paddingHorizontal: 32,
     },
     title: {
         fontSize: 20,
@@ -124,6 +126,7 @@ const styles = StyleSheet.create({
         borderColor: colors.destructive,
         borderRadius: radius.sm,
         borderWidth: 1,
+        marginBottom: 8,
     },
     copied: {
         backgroundColor: colors.muted,
@@ -132,9 +135,11 @@ const styles = StyleSheet.create({
         borderColor: colors.accentForeground,
         borderRadius: radius.sm,
         borderWidth: 1,
+        marginBottom: 8,
     },
     input: {
-        minWidth: 200,
+        width: "100%",
+        maxWidth: 360,
         height: 40,
         margin: 12,
         borderWidth: 1,
