@@ -1,11 +1,4 @@
-import {
-    Alert,
-    Pressable,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
-} from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from "react";
 import { useAuth } from "@global-client-auth";
@@ -17,22 +10,35 @@ export default function SignInScreen() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [formError, setFormError] = useState("");
+    const [copiedMessage, setCopiedMessage] = useState("");
 
     const copyUsername = async () => {
         try {
             await Clipboard.setStringAsync("detective");
-            Alert.alert("Username copied.");
+            setCopiedMessage("Username copied.");
+            setTimeout(() => {
+                setCopiedMessage("");
+            }, 3000);
         } catch (_error) {
-            Alert.alert("Couldn't copy. Try again.");
+            setCopiedMessage("Couldn't copy. Try again.");
+            setTimeout(() => {
+                setCopiedMessage("");
+            }, 3000);
         }
     };
 
     const copyPassword = async () => {
         try {
             await Clipboard.setStringAsync("password123");
-            Alert.alert("Password copied.");
+            setCopiedMessage("Password copied.");
+            setTimeout(() => {
+                setCopiedMessage("");
+            }, 3000);
         } catch (_error) {
-            Alert.alert("Couldn't copy. Try again.");
+            setCopiedMessage("Couldn't copy. Try again.");
+            setTimeout(() => {
+                setCopiedMessage("");
+            }, 3000);
         }
     };
 
@@ -52,9 +58,11 @@ export default function SignInScreen() {
         <SafeAreaView style={styles.container}>
             <Text style={styles.title}>Mobile Login</Text>
 
-            {errorMessage ? (
-                <Text style={styles.error}>{errorMessage}</Text>
-            ) : null}
+            {errorMessage && <Text style={styles.error}>{errorMessage}</Text>}
+
+            {copiedMessage && (
+                <Text style={styles.copied}>{copiedMessage}</Text>
+            )}
 
             <TextInput
                 style={styles.input}
@@ -114,6 +122,14 @@ const styles = StyleSheet.create({
         color: colors.destructive,
         padding: 4,
         borderColor: colors.destructive,
+        borderRadius: radius.sm,
+        borderWidth: 1,
+    },
+    copied: {
+        backgroundColor: colors.muted,
+        color: colors.primary,
+        padding: 4,
+        borderColor: colors.accentForeground,
         borderRadius: radius.sm,
         borderWidth: 1,
     },
