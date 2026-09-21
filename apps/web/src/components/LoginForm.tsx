@@ -41,7 +41,10 @@ export default function LoginForm({
                 <CardContent>
                     <div className="flex flex-col gap-6 mb-4">
                         {errorMessage && (
-                            <div role="alert" className="form-error">
+                            <div
+                                role="alert"
+                                className="rounded-md border border-destructive bg-muted p-1 text-sm text-destructive"
+                            >
                                 {errorMessage}
                             </div>
                         )}

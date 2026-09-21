@@ -3,6 +3,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useEffect, useState } from "react";
 import type { EscapeRoomType } from "@global-types";
 import { useAuth } from "@global-client-auth";
+import { colors, radius } from "@global-theme";
 
 export default function Home() {
     const { socket, logout } = useAuth();
@@ -26,7 +27,9 @@ export default function Home() {
             <Text style={styles.title}>Connected</Text>
 
             {rooms.map((room) => (
-                <Text key={room.id}>{room.name}</Text>
+                <Text key={room.id} style={styles.room}>
+                    {room.name}
+                </Text>
             ))}
 
             <Pressable style={styles.button} onPress={logout}>
@@ -39,7 +42,7 @@ export default function Home() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#fff",
+        backgroundColor: colors.background,
         alignItems: "center",
         justifyContent: "center",
         gap: 8,
@@ -47,15 +50,19 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 20,
         fontWeight: "bold",
+        color: colors.foreground,
+    },
+    room: {
+        color: colors.mutedForeground,
     },
     button: {
-        backgroundColor: "black",
+        backgroundColor: colors.primary,
         paddingVertical: 10,
         paddingHorizontal: 24,
-        borderRadius: 6,
+        borderRadius: radius.md,
         marginTop: 16,
     },
     buttonText: {
-        color: "white",
+        color: colors.primaryForeground,
     },
 });

@@ -9,6 +9,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from "react";
 import { useAuth } from "@global-client-auth";
+import { colors, radius } from "@global-theme";
 import * as Clipboard from "expo-clipboard";
 
 export default function SignInScreen() {
@@ -58,6 +59,7 @@ export default function SignInScreen() {
             <TextInput
                 style={styles.input}
                 placeholder="Username"
+                placeholderTextColor={colors.mutedForeground}
                 autoCapitalize="none"
                 autoCorrect={false}
                 onChangeText={setUsername}
@@ -66,6 +68,7 @@ export default function SignInScreen() {
             <TextInput
                 style={styles.input}
                 placeholder="Password"
+                placeholderTextColor={colors.mutedForeground}
                 secureTextEntry
                 onChangeText={setPassword}
                 value={password}
@@ -96,48 +99,52 @@ export default function SignInScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#fff",
+        backgroundColor: colors.background,
         alignItems: "center",
         justifyContent: "center",
     },
     title: {
         fontSize: 20,
         fontWeight: "bold",
+        color: colors.foreground,
         marginBottom: 12,
     },
     error: {
-        backgroundColor: "#ccc",
-        color: "red",
+        backgroundColor: colors.muted,
+        color: colors.destructive,
         padding: 4,
-        borderColor: "red",
-        borderRadius: 4,
-        borderWidth: 2,
+        borderColor: colors.destructive,
+        borderRadius: radius.sm,
+        borderWidth: 1,
     },
     input: {
         minWidth: 200,
         height: 40,
         margin: 12,
         borderWidth: 1,
+        borderColor: colors.input,
+        borderRadius: radius.md,
+        color: colors.foreground,
         padding: 10,
     },
     button: {
-        backgroundColor: "black",
+        backgroundColor: colors.primary,
         paddingVertical: 10,
         paddingHorizontal: 24,
-        borderRadius: 6,
+        borderRadius: radius.md,
     },
     buttonText: {
-        color: "white",
+        color: colors.primaryForeground,
     },
     copyBox: {
-        backgroundColor: "#f9f9f9",
+        backgroundColor: colors.muted,
         padding: 6,
-        borderRadius: 4,
+        borderRadius: radius.md,
         marginTop: 16,
     },
     hint: {
         padding: 8,
-        color: "#666",
+        color: colors.mutedForeground,
         fontWeight: "600",
     },
 });

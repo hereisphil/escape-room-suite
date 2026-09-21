@@ -2,6 +2,7 @@ import * as Haptics from "expo-haptics";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useRef, useState } from "react";
 import { Alert, Button, StyleSheet, Text, View } from "react-native";
+import { colors } from "@global-theme";
 
 export default function CameraScreen() {
     const [isActive, setIsActive] = useState(true);
@@ -42,7 +43,11 @@ export default function CameraScreen() {
                 <Text style={styles.message}>
                     We need your permission to show the camera
                 </Text>
-                <Button onPress={requestPermission} title="grant permission" />
+                <Button
+                    onPress={requestPermission}
+                    title="grant permission"
+                    color={colors.primary}
+                />
             </View>
         );
     }
@@ -66,10 +71,12 @@ export default function CameraScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: colors.background,
         justifyContent: "center",
     },
     message: {
         textAlign: "center",
+        color: colors.foreground,
         paddingBottom: 10,
     },
     camera: {
@@ -82,14 +89,5 @@ const styles = StyleSheet.create({
         backgroundColor: "transparent",
         width: "100%",
         paddingHorizontal: 64,
-    },
-    button: {
-        flex: 1,
-        alignItems: "center",
-    },
-    text: {
-        fontSize: 24,
-        fontWeight: "bold",
-        color: "white",
     },
 });

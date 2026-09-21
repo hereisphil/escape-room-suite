@@ -51,7 +51,7 @@ function App() {
                         isLoading={isConnecting}
                         errorMessage={authError}
                     />
-                    <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-900 shadow-sm w-full max-w-sm tracking-wider">
+                    <div className="rounded-lg border border-border bg-muted px-4 py-3 text-sm text-muted-foreground shadow-sm w-full max-w-sm tracking-wider">
                         <p className="mt-1 font-bold">
                             Use the following account to log in:
                         </p>
