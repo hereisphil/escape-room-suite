@@ -30,6 +30,7 @@ export type ClientType = "mobile" | "tablet" | "web" | "test";
 export interface ServerToClientEvents {
     "room:load": (rooms: EscapeRoomType[]) => void;
     "message:received": (message: string) => void;
+    "room:start": (message: string) => void;
 }
 
 // Events emitted by the Client and handled by the Server
@@ -37,6 +38,7 @@ export interface ClientToServerEvents {
     "client:register": (clientType: ClientType) => void;
     "message:send": (message: string) => void;
     "admin:error": (error: string) => void;
+    "room:start": (id: EscapeRoomType["id"]) => void;
 }
 
 // Custom properties stored in socket.data

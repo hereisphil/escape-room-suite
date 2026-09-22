@@ -5,7 +5,6 @@ import { Server } from "socket.io";
 import cors from "cors";
 import { SERVER_PORT } from "@global-types";
 import type {
-    ClientType,
     EscapeRoomType,
     ClientToServerEvents,
     ServerToClientEvents,
@@ -98,6 +97,12 @@ io.on("connection", (socket) => {
     socket.on("message:send", (message) => {
         console.log(message);
         socket.emit("message:received", message);
+    });
+
+    socket.on("room:start", (roomId) => {
+        console.log(`Admin room:start ID:${roomId}`);
+        const id = String(roomId);
+        socket.emit("room:start", id);
     });
 
     socket.on("admin:error", (error) => {

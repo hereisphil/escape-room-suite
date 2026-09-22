@@ -21,11 +21,19 @@ import { SendMessage } from "./components/SendMessage";
 import { useAuth } from "@global-client-auth";
 
 import { type EscapeRoomType } from "@global-types";
+import { StartCountdown } from "./components/StartCountdown";
 
 function App() {
     // The socket and the login logic from shared global AuthProvider
-    const { socket, isLoggedIn, isConnecting, authError, login, logout, rooms } =
-        useAuth();
+    const {
+        socket,
+        isLoggedIn,
+        isConnecting,
+        authError,
+        login,
+        logout,
+        rooms,
+    } = useAuth();
     const [currentRoom, setCurrentRoom] = useState<EscapeRoomType>();
 
     if (!isLoggedIn || !socket) {
@@ -96,9 +104,9 @@ function App() {
                             <CardAction>
                                 <Badge variant="default">Live</Badge>
                             </CardAction>
-                            <CardTitle>{currentRoom?.slug}</CardTitle>
+                            <CardTitle>{currentRoom.slug}</CardTitle>
                             <CardDescription>
-                                {currentRoom?.summary}
+                                {currentRoom.summary}
                             </CardDescription>
                         </CardHeader>
                         <CardFooter className="flex justify-around">
@@ -106,9 +114,11 @@ function App() {
                                 roomName={currentRoom.name}
                                 socket={socket}
                             />
-                            <Button className="w-full max-w-xs">
-                                View Event
-                            </Button>
+                            <StartCountdown
+                                roomName={currentRoom.name}
+                                roomId={currentRoom.id}
+                                socket={socket}
+                            />
                         </CardFooter>
                     </Card>
                 ) : (
