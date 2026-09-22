@@ -5,15 +5,13 @@ import {
     Pressable,
     View,
 } from "react-native";
-import { useState } from "react";
-import type { EscapeRoomType } from "@global-types";
 import { useAuth } from "@global-client-auth";
 import { colors, radius } from "@global-theme";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Link } from "expo-router";
 
 export default function App() {
     const { rooms, logout } = useAuth();
-    const [selectedRoom, setSelectedRoom] = useState<EscapeRoomType["name"]>();
 
     if (!rooms) {
         return (
@@ -27,13 +25,19 @@ export default function App() {
         <SafeAreaView style={styles.container}>
             <View style={styles.flex}>
                 {rooms.map((room) => (
-                    <Pressable
+                    <Link
                         key={room.id}
+                        href={{
+                            pathname: "/[roomId]",
+                            params: { roomId: room.id },
+                        }}
                         style={styles.roomBtn}
-                        onPress={() => setSelectedRoom(room.name)}
+                        asChild
                     >
-                        <Text style={styles.roomBtnText}>{room.name}</Text>
-                    </Pressable>
+                        <Pressable>
+                            <Text style={styles.roomBtnText}>{room.name}</Text>
+                        </Pressable>
+                    </Link>
                 ))}
             </View>
             <Pressable style={styles.logoutBtn} onPress={logout}>

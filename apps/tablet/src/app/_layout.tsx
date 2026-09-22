@@ -38,6 +38,7 @@ function RootNavigator() {
             </Stack.Protected>
             <Stack.Protected guard={isLoggedIn}>
                 <Stack.Screen name="index" />
+                <Stack.Screen name="[roomId]" />
             </Stack.Protected>
         </Stack>
     );
