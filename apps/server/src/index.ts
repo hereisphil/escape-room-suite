@@ -101,8 +101,8 @@ io.on("connection", (socket) => {
 
     socket.on("room:start", (roomId) => {
         console.log(`Admin room:start ID:${roomId}`);
-        const id = String(roomId);
-        socket.emit("room:start", id);
+        // Must use io.emit and NOT socket.emit
+        io.emit("room:start", String(roomId));
     });
 
     socket.on("admin:error", (error) => {

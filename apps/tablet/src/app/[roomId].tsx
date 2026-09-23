@@ -3,33 +3,34 @@ import { useAuth } from "@global-client-auth";
 import { ActivityIndicator, Text, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useEffect, useState } from "react";
-import type { EscapeRoomType } from "@global-types/src";
-import { colors, radius } from "@global-theme";
+import type { EscapeRoomType } from "@global-types";
+import { colors } from "@global-theme";
 
 export default function RoomScreen() {
-    const { roomId } = useLocalSearchParams();
-    const id = Number(roomId);
+    const { roomId } = useLocalSearchParams<{ roomId: string }>();
     const { socket, rooms } = useAuth();
     const [escapeRoom, setEscapeRoom] = useState<EscapeRoomType>();
     const [isStarted, setIsStarted] = useState(false);
 
     useEffect(() => {
-        const room = rooms?.find((room) => room.id === id);
+        const room = rooms?.find((room) => room.id === Number(roomId));
         setEscapeRoom(room);
-    }, []);
+    }, [rooms, roomId]);
 
+    // Will only work as long as this screen is mounted when the web emits the event
     useEffect(() => {
-        socket?.on("room:start", (id) => {
-            if (id != roomId) return;
+        if (!socket) return;
+        const onRoomStart = (startedId: string) => {
+            if (startedId !== roomId) return;
             setIsStarted(true);
-        });
-        // return () => {
-        //     socket?.current?.disconnect();
-        //     socket.current = null;
-        // };
-    }, [socket]);
+        };
+        socket.on("room:start", onRoomStart);
+        return () => {
+            socket.off("room:start", onRoomStart);
+        };
+    }, [socket, roomId]);
 
-    if (!rooms || !id) {
+    if (!rooms || !roomId) {
         return (
             <SafeAreaView style={[styles.container, styles.center]}>
                 <ActivityIndicator size="large" />
@@ -43,7 +44,7 @@ export default function RoomScreen() {
                 <ActivityIndicator size="large" />
             ) : (
                 <View>
-                    <Text>Welcome to {escapeRoom?.name}</Text>
+                    <Text>Welcome to {escapeRoom.name}</Text>
                     {isStarted ? (
                         <View style={[styles.timer, styles.center]}>
                             <Text style={styles.timerText}>60:00</Text>
