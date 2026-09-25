@@ -35,6 +35,18 @@ function App() {
         rooms,
     } = useAuth();
     const [currentRoom, setCurrentRoom] = useState<EscapeRoomType>();
+    const [liveRoomIds, setLiveRoomIds] = useState<Set<EscapeRoomType["id"]>>(
+        () => new Set(),
+    );
+
+    const isRoomLive = (roomId: EscapeRoomType["id"]) =>
+        liveRoomIds.has(roomId);
+
+    const handleGoLive = (roomId: EscapeRoomType["id"]) => {
+        setLiveRoomIds((prev) => new Set(prev).add(roomId));
+    };
+
+    const isCurrentRoomLive = currentRoom ? isRoomLive(currentRoom.id) : false;
 
     if (!isLoggedIn || !socket) {
         return (
@@ -77,13 +89,27 @@ function App() {
                     itemToStringLabel={(room) => room.slug}
                     isItemEqualToValue={(a, b) => a.id === b.id}
                 >
-                    <SelectTrigger>
-                        <SelectValue placeholder="Select a room" />
+                    <SelectTrigger className="max-w-full">
+                        <SelectValue
+                            className="max-w-full"
+                            placeholder="Select a room"
+                        />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="w-full">
                         {rooms?.map((room) => (
                             <SelectItem key={room.id} value={room}>
+                                <span
+                                    aria-hidden
+                                    className={
+                                        isRoomLive(room.id)
+                                            ? "size-2 rounded-full bg-destructive"
+                                            : "size-2 rounded-full border border-muted-foreground"
+                                    }
+                                />
                                 {room.slug}
+                                <span className="text-xs text-muted-foreground">
+                                    {isRoomLive(room.id) ? "Live" : "Standby"}
+                                </span>
                             </SelectItem>
                         ))}
                     </SelectContent>
@@ -102,7 +128,18 @@ function App() {
                         />
                         <CardHeader>
                             <CardAction>
-                                <Badge variant="default">Live</Badge>
+                                <Badge
+                                    variant={
+                                        isCurrentRoomLive
+                                            ? "default"
+                                            : "outline"
+                                    }
+                                >
+                                    <span
+                                        className={`w-2 h-2 rounded-2xl ${isCurrentRoomLive ? "bg-destructive" : "bg-accent"}`}
+                                    ></span>
+                                    {isCurrentRoomLive ? "Live" : "Standby"}
+                                </Badge>
                             </CardAction>
                             <CardTitle>{currentRoom.slug}</CardTitle>
                             <CardDescription>
@@ -118,6 +155,8 @@ function App() {
                                 roomName={currentRoom.name}
                                 roomId={currentRoom.id}
                                 socket={socket}
+                                isLive={isCurrentRoomLive}
+                                onStart={handleGoLive}
                             />
                         </CardFooter>
                     </Card>

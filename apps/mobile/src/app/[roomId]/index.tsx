@@ -1,43 +1,11 @@
-import { useLocalSearchParams } from "expo-router";
-import { useAuth } from "@global-client-auth";
-import { ActivityIndicator, Text, StyleSheet, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@react-native-vector-icons/ionicons";
-import { useEffect, useState } from "react";
-import type { EscapeRoomType } from "@global-types";
 import { colors, radius } from "@global-theme";
+import { useRoom } from "../../lib/room-context";
 
-export default function RoomScreen() {
-    const { roomId } = useLocalSearchParams<{ roomId: string }>();
-    const { socket, rooms } = useAuth();
-    const [escapeRoom, setEscapeRoom] = useState<EscapeRoomType>();
-    const [isStarted, setIsStarted] = useState(false);
-
-    useEffect(() => {
-        const room = rooms?.find((room) => room.id === Number(roomId));
-        setEscapeRoom(room);
-    }, [rooms, roomId]);
-
-    // Will only work as long as this screen is mounted when the web emits the event
-    useEffect(() => {
-        if (!socket) return;
-        const onRoomStart = (startedId: string) => {
-            if (startedId !== roomId) return;
-            setIsStarted(true);
-        };
-        socket.on("room:start", onRoomStart);
-        return () => {
-            socket.off("room:start", onRoomStart);
-        };
-    }, [socket, roomId]);
-
-    if (!rooms || !roomId || !escapeRoom) {
-        return (
-            <SafeAreaView style={styles.container}>
-                <ActivityIndicator size="large" />
-            </SafeAreaView>
-        );
-    }
+export default function RoomHomeScreen() {
+    const { room, isStarted, latestMessage } = useRoom();
 
     return (
         <SafeAreaView style={styles.container}>
@@ -54,22 +22,25 @@ export default function RoomScreen() {
                     </Text>
                 </View>
                 <Text style={styles.eyebrow}>Welcome to</Text>
-                <Text style={styles.title}>{escapeRoom.name}</Text>
-                <Text style={styles.summary}>{escapeRoom.summary}</Text>
+                <Text style={styles.title}>{room.name}</Text>
+                <Text style={styles.summary}>{room.summary}</Text>
             </View>
 
             <View style={styles.statusCard}>
                 {isStarted ? (
                     <>
                         <Ionicons
-                            name="timer-outline"
+                            name="lock-open-outline"
                             size={40}
                             color={colors.primary}
                         />
                         <Text style={styles.statusTitle}>
                             The clock is running
                         </Text>
-                        <Text style={styles.timer}>60:00</Text>
+                        <Text style={styles.statusText}>
+                            Find the QR codes hidden around the room and scan
+                            them with the Scan tab to unlock puzzles.
+                        </Text>
                     </>
                 ) : (
                     <>
@@ -85,6 +56,15 @@ export default function RoomScreen() {
                     </>
                 )}
             </View>
+
+            {latestMessage ? (
+                <View style={styles.messageCard}>
+                    <Text style={styles.messageLabel}>
+                        From your game master
+                    </Text>
+                    <Text style={styles.messageText}>{latestMessage}</Text>
+                </View>
+            ) : null}
         </SafeAreaView>
     );
 }
@@ -171,9 +151,22 @@ const styles = StyleSheet.create({
         textAlign: "center",
         lineHeight: 20,
     },
-    timer: {
-        fontSize: 64,
-        fontWeight: 600,
-        color: colors.primary,
+    messageCard: {
+        backgroundColor: colors.muted,
+        borderRadius: radius.lg,
+        padding: 16,
+        gap: 4,
+    },
+    messageLabel: {
+        fontSize: 12,
+        fontWeight: "600",
+        letterSpacing: 1,
+        textTransform: "uppercase",
+        color: colors.mutedForeground,
+    },
+    messageText: {
+        fontSize: 15,
+        color: colors.foreground,
+        lineHeight: 22,
     },
 });

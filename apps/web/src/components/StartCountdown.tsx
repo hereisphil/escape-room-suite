@@ -17,10 +17,14 @@ export function StartCountdown({
     roomId,
     roomName,
     socket,
+    isLive,
+    onStart,
 }: {
     roomId: EscapeRoomType["id"];
     roomName: EscapeRoomType["name"];
     socket: Socket;
+    isLive: boolean;
+    onStart: (roomId: EscapeRoomType["id"]) => void;
 }) {
     const [open, setOpen] = useState(false);
 
@@ -41,6 +45,7 @@ export function StartCountdown({
     const handleCLick = () => {
         try {
             socket.emit("room:start", roomId);
+            onStart(roomId);
             successToast();
             setOpen(false);
         } catch (error) {
@@ -52,7 +57,12 @@ export function StartCountdown({
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger
-                render={<Button type="button">Start Countdown</Button>}
+                disabled={isLive}
+                render={
+                    <Button type="button" disabled={isLive}>
+                        {isLive ? "Countdown Running" : "Start Countdown"}
+                    </Button>
+                }
             />
             <DialogContent className="sm:max-w-sm">
                 <DialogHeader>

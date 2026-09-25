@@ -1,17 +1,17 @@
 import {
     ActivityIndicator,
+    Pressable,
+    ScrollView,
     StyleSheet,
     Text,
-    Pressable,
     View,
-    ScrollView,
 } from "react-native";
-import { useAuth } from "@global-client-auth";
-import { colors, radius } from "@global-theme";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Link } from "expo-router";
+import { useAuth } from "@global-client-auth";
+import { colors, radius } from "@global-theme";
 
-export default function App() {
+export default function SelectRoomScreen() {
     const { rooms, logout } = useAuth();
 
     if (!rooms) {
@@ -28,10 +28,11 @@ export default function App() {
                 <Text style={styles.eyebrow}>Staff setup</Text>
                 <Text style={styles.title}>Select a room</Text>
                 <Text style={styles.subTitle}>
-                    Choose the room this tablet will be used in, then place it
-                    in that room.
+                    Choose the room this phone will be used in, then hand it to
+                    the players.
                 </Text>
             </View>
+
             <ScrollView
                 style={styles.list}
                 contentContainerStyle={styles.listContent}
@@ -63,6 +64,7 @@ export default function App() {
                     </Link>
                 ))}
             </ScrollView>
+
             <Pressable style={styles.logoutBtn} onPress={logout}>
                 <Text style={styles.logoutBtnText}>Logout</Text>
             </Pressable>
@@ -103,11 +105,10 @@ const styles = StyleSheet.create({
     },
     list: {
         width: "100%",
-        maxWidth: 800,
     },
     listContent: {
         padding: 24,
-        gap: 48,
+        gap: 12,
     },
     roomCard: {
         backgroundColor: colors.card,
