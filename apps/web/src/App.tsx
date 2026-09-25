@@ -1,12 +1,12 @@
+import LoginForm from "./components/LoginForm";
 import { useState } from "react";
 import {
-    Combobox,
-    ComboboxContent,
-    ComboboxEmpty,
-    ComboboxInput,
-    ComboboxItem,
-    ComboboxList,
-} from "@/components/ui/combobox";
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,61 +17,105 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
+import { SendMessage } from "./components/SendMessage";
+import { useAuth } from "@global-client-auth";
 
-import type { EscapeRoomType } from "@global-types";
-
-const rooms: EscapeRoomType[] = [
-    {
-        roomId: 1,
-        shortName: "Deep-Sea",
-        fullName: "Deep-Sea Abyssal Research Station",
-        summary:
-            "A catastrophic pressure hull breach where players calibrate depth gauges, restore ballast integrity, and decode bioluminescent sonar signals to surface before oxygen depletion.",
-    },
-    {
-        roomId: 2,
-        shortName: "Bunker",
-        fullName: "Decommissioned Cold War Bunker",
-        summary:
-            "An analog-to-digital missile silo lockdown where players patch rotary dial circuitry, cross-reference encrypted punch cards, and cycle manual radiation blast doors.",
-    },
-    {
-        roomId: 3,
-        shortName: "Clockwork",
-        fullName: "Abandoned Clockwork Archive",
-        summary:
-            "The mechanical subterranean vault of a vanished horologist, requiring players to synchronize massive brass pendulum gears, align astrolabe lenses, and wind counterweighted escapement locks.",
-    },
-];
+import { type EscapeRoomType } from "@global-types";
+import { StartCountdown } from "./components/StartCountdown";
 
 function App() {
+    // The socket and the login logic from shared global AuthProvider
+    const {
+        socket,
+        isLoggedIn,
+        isConnecting,
+        authError,
+        login,
+        logout,
+        rooms,
+    } = useAuth();
     const [currentRoom, setCurrentRoom] = useState<EscapeRoomType>();
+    const [liveRoomIds, setLiveRoomIds] = useState<Set<EscapeRoomType["id"]>>(
+        () => new Set(),
+    );
+
+    const isRoomLive = (roomId: EscapeRoomType["id"]) =>
+        liveRoomIds.has(roomId);
+
+    const handleGoLive = (roomId: EscapeRoomType["id"]) => {
+        setLiveRoomIds((prev) => new Set(prev).add(roomId));
+    };
+
+    const isCurrentRoomLive = currentRoom ? isRoomLive(currentRoom.id) : false;
+
+    if (!isLoggedIn || !socket) {
+        return (
+            <main className="flex justify-center items-center">
+                <section className="grow max-w-xl flex flex-col items-center">
+                    <LoginForm
+                        onLogin={login}
+                        isLoading={isConnecting}
+                        errorMessage={authError}
+                    />
+                    <div className="rounded-lg border border-border bg-muted px-4 py-3 text-sm text-muted-foreground shadow-sm w-full max-w-sm tracking-wider">
+                        <p className="mt-1 font-bold">
+                            Use the following account to log in:
+                        </p>
+                        <div className="mt-2 space-y-1">
+                            <p>
+                                <span className="font-medium">Username:</span>{" "}
+                                <span className="font-mono">gamemaster</span>
+                            </p>
+                            <p>
+                                <span className="font-medium">Password:</span>{" "}
+                                <span className="font-mono">password123</span>
+                            </p>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        );
+    }
 
     return (
         <main className="py-6 px-2">
             <header className="flex justify-between p-2 mb-4">
-                <Combobox<EscapeRoomType>
-                    items={rooms}
+                <Select<EscapeRoomType>
+                    value={currentRoom ?? null}
                     onValueChange={(selectedRoom) =>
                         setCurrentRoom(selectedRoom ?? undefined)
                     }
-                    itemToStringValue={(room) => String(room.roomId)}
-                    itemToStringLabel={(room) => room.shortName}
+                    itemToStringValue={(room) => String(room.id)}
+                    itemToStringLabel={(room) => room.slug}
+                    isItemEqualToValue={(a, b) => a.id === b.id}
                 >
-                    <ComboboxInput placeholder="Select a room" />
-                    <ComboboxContent>
-                        <ComboboxEmpty>No rooms found.</ComboboxEmpty>
-                        <ComboboxList>
-                            {(room) => (
-                                <ComboboxItem key={room.roomId} value={room}>
-                                    {room.shortName}
-                                </ComboboxItem>
-                            )}
-                        </ComboboxList>
-                    </ComboboxContent>
-                </Combobox>
+                    <SelectTrigger className="max-w-full">
+                        <SelectValue
+                            className="max-w-full"
+                            placeholder="Select a room"
+                        />
+                    </SelectTrigger>
+                    <SelectContent className="w-full">
+                        {rooms?.map((room) => (
+                            <SelectItem key={room.id} value={room}>
+                                <span
+                                    aria-hidden
+                                    className={
+                                        isRoomLive(room.id)
+                                            ? "size-2 rounded-full bg-destructive"
+                                            : "size-2 rounded-full border border-muted-foreground"
+                                    }
+                                />
+                                {room.slug}
+                                <span className="text-xs text-muted-foreground">
+                                    {isRoomLive(room.id) ? "Live" : "Standby"}
+                                </span>
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
                 <h1>Web Admin</h1>
-                <Button>Logout</Button>
+                <Button onClick={logout}>Logout</Button>
             </header>
             <section className="flex items-center justify-center">
                 {currentRoom ? (
@@ -84,20 +128,36 @@ function App() {
                         />
                         <CardHeader>
                             <CardAction>
-                                <Badge variant="default">Live</Badge>
+                                <Badge
+                                    variant={
+                                        isCurrentRoomLive
+                                            ? "default"
+                                            : "outline"
+                                    }
+                                >
+                                    <span
+                                        className={`w-2 h-2 rounded-2xl ${isCurrentRoomLive ? "bg-destructive" : "bg-accent"}`}
+                                    ></span>
+                                    {isCurrentRoomLive ? "Live" : "Standby"}
+                                </Badge>
                             </CardAction>
-                            <CardTitle>{currentRoom?.shortName}</CardTitle>
+                            <CardTitle>{currentRoom.slug}</CardTitle>
                             <CardDescription>
-                                {currentRoom?.summary}
+                                {currentRoom.summary}
                             </CardDescription>
                         </CardHeader>
                         <CardFooter className="flex justify-around">
-                            <Button className="w-full max-w-xs">
-                                View Event
-                            </Button>
-                            <Button className="w-full max-w-xs">
-                                View Event
-                            </Button>
+                            <SendMessage
+                                roomName={currentRoom.name}
+                                socket={socket}
+                            />
+                            <StartCountdown
+                                roomName={currentRoom.name}
+                                roomId={currentRoom.id}
+                                socket={socket}
+                                isLive={isCurrentRoomLive}
+                                onStart={handleGoLive}
+                            />
                         </CardFooter>
                     </Card>
                 ) : (

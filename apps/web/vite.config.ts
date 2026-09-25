@@ -10,5 +10,8 @@ export default defineConfig({
         alias: {
             "@": path.resolve(import.meta.dirname, "./src"),
         },
+        // Shared workspace packages must use this app's copy of these,
+        // otherwise React throws "invalid hook call".
+        dedupe: ["react", "react-dom", "socket.io-client"],
     },
 });
