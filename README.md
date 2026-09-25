@@ -83,3 +83,15 @@ Test the mobile app via your iOS/Android simulators or, what I use, the Expo Go 
 
 - iOS (USA): <https://apps.apple.com/us/app/expo-go/id982107779>
 - Android (USA): <https://play.google.com/store/apps/details?id=host.exp.exponent&hl=en_US&pli=1>
+
+## Screenshots
+
+> 2026.09.24 Addding two simple screenshots, I do plan to add a walkthrough video when complete.
+
+**#1 Web Admin ready to start the rooms. Tablet & Mobile are waiting.**
+
+![waiting-to-start](/screenshots/2026Sep24_waiting-to-start.png)
+
+**#2 Web Admin started the rooms!**
+
+![started](/screenshots/2026Sep24_started.png)
