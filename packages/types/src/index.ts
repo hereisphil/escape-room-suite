@@ -22,6 +22,28 @@ export interface EscapeRoomType {
 
 export type ClientType = "mobile" | "tablet" | "web" | "test";
 
+export const ROOM_DURATION_MS = 60 * 60 * 1000;
+
+export interface RoomCountdown {
+    roomId: number;
+    endsAt: number;
+}
+
+export function remainingMs(endsAt: number, now = Date.now()) {
+    return Math.max(0, endsAt - now);
+}
+
+export function formatCountdown(ms: number) {
+    const totalSeconds = Math.ceil(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+export function countdownProgress(remaining: number) {
+    return Math.min(1, Math.max(0, remaining / ROOM_DURATION_MS));
+}
+
 /* -------------------------------------------------------------------------- */
 /*                              Socket.io Events                              */
 /* -------------------------------------------------------------------------- */
@@ -30,7 +52,7 @@ export type ClientType = "mobile" | "tablet" | "web" | "test";
 export interface ServerToClientEvents {
     "room:load": (rooms: EscapeRoomType[]) => void;
     "message:received": (message: string) => void;
-    "room:start": (message: string) => void;
+    "room:start": (countdown: RoomCountdown) => void;
 }
 
 // Events emitted by the Client and handled by the Server

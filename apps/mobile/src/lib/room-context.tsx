@@ -6,6 +6,7 @@ import type { EscapeRoomType } from "@global-types";
 type RoomValue = {
     room: EscapeRoomType;
     isStarted: boolean;
+    endsAt: number | null;
     latestMessage: string | null;
 };
 
@@ -25,37 +26,37 @@ type RoomProviderProps = {
 };
 
 export function RoomProvider({ room, children }: RoomProviderProps) {
-    const { socket } = useAuth();
-    const [isStarted, setIsStarted] = useState(false);
+    const { socket, countdowns } = useAuth();
     const [latestMessage, setLatestMessage] = useState<string | null>(null);
+    const countdown =
+        countdowns.find((item) => item.roomId === room.id) ?? null;
 
-    // Reset when changing rooms
     useEffect(() => {
-        setIsStarted(false);
         setLatestMessage(null);
     }, [room.id]);
 
     useEffect(() => {
         if (!socket) return;
 
-        const onRoomStart = (startedId: string) => {
-            if (startedId !== String(room.id)) return;
-            setIsStarted(true);
-        };
         const onMessage = (message: string) => {
             setLatestMessage(message);
         };
 
-        socket.on("room:start", onRoomStart);
         socket.on("message:received", onMessage);
         return () => {
-            socket.off("room:start", onRoomStart);
             socket.off("message:received", onMessage);
         };
-    }, [socket, room.id]);
+    }, [socket]);
 
     return (
-        <RoomContext.Provider value={{ room, isStarted, latestMessage }}>
+        <RoomContext.Provider
+            value={{
+                room,
+                isStarted: countdown !== null,
+                endsAt: countdown?.endsAt ?? null,
+                latestMessage,
+            }}
+        >
             {children}
         </RoomContext.Provider>
     );

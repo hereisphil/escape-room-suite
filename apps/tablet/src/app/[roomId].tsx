@@ -1,35 +1,65 @@
 import { useLocalSearchParams } from "expo-router";
-import { useAuth } from "@global-client-auth";
+import { useAuth, useCountdown } from "@global-client-auth";
 import { ActivityIndicator, Text, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@react-native-vector-icons/ionicons";
+import Svg, { Circle } from "react-native-svg";
 import { useEffect, useState } from "react";
 import type { EscapeRoomType } from "@global-types";
 import { colors, radius } from "@global-theme";
 
+const RING_SIZE = 280;
+const RING_STROKE = 14;
+
+function CountdownRing({ endsAt }: { endsAt: number }) {
+    const { label, progress } = useCountdown(endsAt);
+    const ringRadius = (RING_SIZE - RING_STROKE) / 2;
+    const circumference = 2 * Math.PI * ringRadius;
+    const center = RING_SIZE / 2;
+
+    return (
+        <View style={styles.ringWrap}>
+            <Svg
+                width={RING_SIZE}
+                height={RING_SIZE}
+                style={{ transform: [{ rotate: "-90deg" }] }}
+            >
+                <Circle
+                    cx={center}
+                    cy={center}
+                    r={ringRadius}
+                    stroke={colors.border}
+                    strokeWidth={RING_STROKE}
+                    fill="none"
+                />
+                <Circle
+                    cx={center}
+                    cy={center}
+                    r={ringRadius}
+                    stroke={colors.primary}
+                    strokeWidth={RING_STROKE}
+                    fill="none"
+                    strokeDasharray={`${circumference} ${circumference}`}
+                    strokeDashoffset={circumference * (1 - progress)}
+                    strokeLinecap="round"
+                />
+            </Svg>
+            <Text style={styles.timer}>{label}</Text>
+        </View>
+    );
+}
+
 export default function RoomScreen() {
     const { roomId } = useLocalSearchParams<{ roomId: string }>();
-    const { socket, rooms } = useAuth();
+    const { rooms, countdowns } = useAuth();
     const [escapeRoom, setEscapeRoom] = useState<EscapeRoomType>();
-    const [isStarted, setIsStarted] = useState(false);
+    const countdown =
+        countdowns.find((item) => item.roomId === Number(roomId)) ?? null;
+    const isStarted = countdown !== null;
 
     useEffect(() => {
         const room = rooms?.find((room) => room.id === Number(roomId));
         setEscapeRoom(room);
     }, [rooms, roomId]);
-
-    // Will only work as long as this screen is mounted when the web emits the event
-    useEffect(() => {
-        if (!socket) return;
-        const onRoomStart = (startedId: string) => {
-            if (startedId !== roomId) return;
-            setIsStarted(true);
-        };
-        socket.on("room:start", onRoomStart);
-        return () => {
-            socket.off("room:start", onRoomStart);
-        };
-    }, [socket, roomId]);
 
     if (!rooms || !roomId || !escapeRoom) {
         return (
@@ -59,17 +89,12 @@ export default function RoomScreen() {
             </View>
 
             <View style={styles.statusCard}>
-                {isStarted ? (
+                {isStarted && countdown ? (
                     <>
-                        <Ionicons
-                            name="timer-outline"
-                            size={40}
-                            color={colors.primary}
-                        />
+                        <CountdownRing endsAt={countdown.endsAt} />
                         <Text style={styles.statusTitle}>
                             The clock is running
                         </Text>
-                        <Text style={styles.timer}>60:00</Text>
                     </>
                 ) : (
                     <>
@@ -171,9 +196,17 @@ const styles = StyleSheet.create({
         textAlign: "center",
         lineHeight: 20,
     },
+    ringWrap: {
+        width: RING_SIZE,
+        height: RING_SIZE,
+        alignItems: "center",
+        justifyContent: "center",
+    },
     timer: {
+        position: "absolute",
         fontSize: 64,
-        fontWeight: 600,
+        fontWeight: "600",
         color: colors.primary,
+        fontVariant: ["tabular-nums"],
     },
 });

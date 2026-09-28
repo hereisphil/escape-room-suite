@@ -18,28 +18,46 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { SendMessage } from "./components/SendMessage";
-import { useAuth } from "@global-client-auth";
+import { useAuth, useCountdown } from "@global-client-auth";
 
-import { type EscapeRoomType } from "@global-types";
+import { type EscapeRoomType, type RoomCountdown } from "@global-types";
 import { ChevronRightIcon } from "lucide-react";
 import { StartCountdown } from "./components/StartCountdown";
 
+function countdownFor(countdowns: RoomCountdown[], roomId: number) {
+  return countdowns.find((item) => item.roomId === roomId) ?? null;
+}
+
+function LiveClock({ endsAt, large = false }: { endsAt: number; large?: boolean }) {
+  const { label } = useCountdown(endsAt);
+  return (
+    <span className={large ? "text-5xl font-semibold tabular-nums tracking-tight" : "tabular-nums"}>
+      {label}
+    </span>
+  );
+}
+
 function App() {
   // The socket and the login logic from shared global AuthProvider
-  const { socket, isLoggedIn, isConnecting, authError, login, logout, rooms } =
-    useAuth();
+  const {
+    socket,
+    isLoggedIn,
+    isConnecting,
+    authError,
+    login,
+    logout,
+    rooms,
+    countdowns,
+  } = useAuth();
   const [currentRoom, setCurrentRoom] = useState<EscapeRoomType>();
-  const [liveRoomIds, setLiveRoomIds] = useState<Set<EscapeRoomType["id"]>>(
-    () => new Set(),
-  );
 
-  const isRoomLive = (roomId: EscapeRoomType["id"]) => liveRoomIds.has(roomId);
+  const isRoomLive = (roomId: EscapeRoomType["id"]) =>
+    countdownFor(countdowns, roomId) !== null;
 
-  const handleGoLive = (roomId: EscapeRoomType["id"]) => {
-    setLiveRoomIds((prev) => new Set(prev).add(roomId));
-  };
-
-  const isCurrentRoomLive = currentRoom ? isRoomLive(currentRoom.id) : false;
+  const currentCountdown = currentRoom
+    ? countdownFor(countdowns, currentRoom.id)
+    : null;
+  const isCurrentRoomLive = currentCountdown !== null;
 
   if (!isLoggedIn || !socket) {
     return (
@@ -128,6 +146,11 @@ function App() {
               <CardTitle>{currentRoom.slug}</CardTitle>
               <CardDescription>{currentRoom.summary}</CardDescription>
             </CardHeader>
+            {currentCountdown ? (
+              <p className="px-6 text-center">
+                <LiveClock endsAt={currentCountdown.endsAt} large />
+              </p>
+            ) : null}
             <CardFooter className="flex justify-around">
               <SendMessage roomName={currentRoom.name} socket={socket} />
               <StartCountdown
@@ -135,7 +158,6 @@ function App() {
                 roomId={currentRoom.id}
                 socket={socket}
                 isLive={isCurrentRoomLive}
-                onStart={handleGoLive}
               />
             </CardFooter>
           </Card>
@@ -185,6 +207,11 @@ function App() {
                           }
                         />
                         {live ? "LIVE" : "STANDBY"}
+                        {live ? (
+                          <LiveClock
+                            endsAt={countdownFor(countdowns, room.id)!.endsAt}
+                          />
+                        ) : null}
                       </span>
                     </button>
                   );
