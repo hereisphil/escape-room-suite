@@ -22,6 +22,33 @@ export interface EscapeRoomType {
 
 export type ClientType = "mobile" | "tablet" | "web" | "test";
 
+export const ROOM_DURATION_MS = 60 * 60 * 1000;
+
+export interface RoomCountdown {
+    roomId: number;
+    endsAt: number;
+}
+
+export interface RoomMessage {
+    roomId: number;
+    message: string;
+}
+
+export function remainingMs(endsAt: number, now = Date.now()) {
+    return Math.max(0, endsAt - now);
+}
+
+export function formatCountdown(ms: number) {
+    const totalSeconds = Math.ceil(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+export function countdownProgress(remaining: number) {
+    return Math.min(1, Math.max(0, remaining / ROOM_DURATION_MS));
+}
+
 /* -------------------------------------------------------------------------- */
 /*                              Socket.io Events                              */
 /* -------------------------------------------------------------------------- */
@@ -29,14 +56,14 @@ export type ClientType = "mobile" | "tablet" | "web" | "test";
 // Events emitted by the Server and handled by the Client
 export interface ServerToClientEvents {
     "room:load": (rooms: EscapeRoomType[]) => void;
-    "message:received": (message: string) => void;
-    "room:start": (message: string) => void;
+    "message:received": (payload: RoomMessage) => void;
+    "room:start": (countdown: RoomCountdown) => void;
 }
 
 // Events emitted by the Client and handled by the Server
 export interface ClientToServerEvents {
     "client:register": (clientType: ClientType) => void;
-    "message:send": (message: string) => void;
+    "message:send": (roomId: EscapeRoomType["id"], message: string) => void;
     "admin:error": (error: string) => void;
     "room:start": (id: EscapeRoomType["id"]) => void;
 }

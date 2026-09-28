@@ -2,12 +2,19 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { io } from "socket.io-client";
 import type { Socket } from "socket.io-client";
-import { SERVER_PORT, SERVER_URL } from "@global-types";
+import {
+    countdownProgress,
+    formatCountdown,
+    remainingMs,
+    SERVER_PORT,
+    SERVER_URL,
+} from "@global-types";
 import type {
     ClientToServerEvents,
     ClientType,
     EscapeRoomType,
     LoginCredentials,
+    RoomCountdown,
     ServerToClientEvents,
 } from "@global-types";
 
@@ -82,9 +89,27 @@ type AuthValue = {
     isConnecting: boolean;
     authError: string | null;
     rooms: EscapeRoomType[] | null;
+    countdowns: RoomCountdown[];
     login: (credentials: LoginCredentials) => void;
     logout: () => void;
 };
+
+export function useCountdown(endsAt: number | null) {
+    const [now, setNow] = useState(() => Date.now());
+
+    useEffect(() => {
+        if (endsAt == null) return;
+        const id = setInterval(() => setNow(Date.now()), 250);
+        return () => clearInterval(id);
+    }, [endsAt]);
+
+    const remaining = endsAt == null ? 0 : remainingMs(endsAt, now);
+    return {
+        remaining,
+        label: formatCountdown(remaining),
+        progress: countdownProgress(remaining),
+    };
+}
 
 const AuthContext = createContext<AuthValue | null>(null);
 
@@ -117,6 +142,7 @@ export function AuthProvider({
     );
     const [authError, setAuthError] = useState<string | null>(null);
     const [rooms, setRooms] = useState<EscapeRoomType[] | null>(null);
+    const [countdowns, setCountdowns] = useState<RoomCountdown[]>([]);
     const socketRef = useRef<AppSocket | null>(null);
 
     function login({ username, password }: LoginCredentials) {
@@ -125,6 +151,7 @@ export function AuthProvider({
         setAuthError(null);
         setIsConnecting(true);
         setRooms(null);
+        setCountdowns([]);
 
         const credentials: LoginCredentials = { username, password };
         const newSocket: AppSocket = io(resolveServerUrl(serverUrl), {
@@ -137,6 +164,15 @@ export function AuthProvider({
         // handler, which can arrive before any screen's useEffect runs.
         newSocket.on("room:load", (loadedRooms) => {
             setRooms(loadedRooms);
+        });
+
+        newSocket.on("room:start", (countdown) => {
+            setCountdowns((current) => {
+                const rest = current.filter(
+                    (item) => item.roomId !== countdown.roomId,
+                );
+                return [...rest, countdown];
+            });
         });
 
         newSocket.on("connect", () => {
@@ -154,6 +190,7 @@ export function AuthProvider({
             setIsLoggedIn(false);
             setAuthError(error.message);
             setRooms(null);
+            setCountdowns([]);
             newSocket.disconnect();
             socketRef.current = null;
             setSocket(null);
@@ -179,6 +216,7 @@ export function AuthProvider({
         setIsConnecting(false);
         setAuthError(null);
         setRooms(null);
+        setCountdowns([]);
     }
 
     useEffect(() => {
@@ -199,6 +237,7 @@ export function AuthProvider({
                 isConnecting,
                 authError,
                 rooms,
+                countdowns,
                 login,
                 logout,
             }}

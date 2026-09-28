@@ -3,9 +3,10 @@ import { createServer } from "http";
 import { networkInterfaces } from "os";
 import { Server } from "socket.io";
 import cors from "cors";
-import { SERVER_PORT } from "@global-types";
+import { ROOM_DURATION_MS, SERVER_PORT } from "@global-types";
 import type {
     EscapeRoomType,
+    RoomCountdown,
     ClientToServerEvents,
     ServerToClientEvents,
     SocketData,
@@ -66,6 +67,8 @@ const connectedClients: ConnectedClients = {
     test: 0,
 };
 
+const roomCountdowns = new Map<number, RoomCountdown>();
+
 /* -------------------------------------------------------------------------- */
 /*                           Middleware: Auth Guard                           */
 /* -------------------------------------------------------------------------- */
@@ -85,6 +88,9 @@ io.on("connection", (socket) => {
     console.log("Client connected:", socket.id);
 
     socket.emit("room:load", EscapeRooms);
+    for (const countdown of roomCountdowns.values()) {
+        socket.emit("room:start", countdown);
+    }
 
     socket.on("client:register", (clientType) => {
         socket.data.clientType = clientType;
@@ -94,15 +100,31 @@ io.on("connection", (socket) => {
         );
     });
 
-    socket.on("message:send", (message) => {
-        console.log(message);
-        socket.emit("message:received", message);
+    socket.on("message:send", (roomId, message) => {
+        if (typeof message !== "string") return;
+        const text = message.trim();
+        const room = EscapeRooms.find((item) => item.id === roomId);
+        if (!room || !text) return;
+
+        console.log(`message:send room ${roomId}: ${text}`);
+        io.emit("message:received", { roomId, message: text });
     });
 
     socket.on("room:start", (roomId) => {
-        console.log(`Admin room:start ID:${roomId}`);
-        // Must use io.emit and NOT socket.emit
-        io.emit("room:start", String(roomId));
+        const room = EscapeRooms.find((item) => item.id === roomId);
+        if (!room) return;
+
+        let countdown = roomCountdowns.get(roomId);
+        if (!countdown) {
+            countdown = {
+                roomId,
+                endsAt: Date.now() + ROOM_DURATION_MS,
+            };
+            roomCountdowns.set(roomId, countdown);
+            console.log(`Admin room:start ID:${roomId}`);
+        }
+
+        io.emit("room:start", countdown);
     });
 
     socket.on("admin:error", (error) => {

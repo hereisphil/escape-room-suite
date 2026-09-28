@@ -1,11 +1,13 @@
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@react-native-vector-icons/ionicons";
+import { useCountdown } from "@global-client-auth";
 import { colors, radius } from "@global-theme";
 import { useRoom } from "../../lib/room-context";
 
 export default function RoomHomeScreen() {
-    const { room, isStarted, latestMessage } = useRoom();
+    const { room, isStarted, endsAt, latestMessage } = useRoom();
+    const { label } = useCountdown(endsAt);
 
     return (
         <SafeAreaView style={styles.container}>
@@ -37,6 +39,7 @@ export default function RoomHomeScreen() {
                         <Text style={styles.statusTitle}>
                             The clock is running
                         </Text>
+                        <Text style={styles.timer}>{label}</Text>
                         <Text style={styles.statusText}>
                             Find the QR codes hidden around the room and scan
                             them with the Scan tab to unlock puzzles.
@@ -150,6 +153,12 @@ const styles = StyleSheet.create({
         color: colors.mutedForeground,
         textAlign: "center",
         lineHeight: 20,
+    },
+    timer: {
+        fontSize: 40,
+        fontWeight: "600",
+        color: colors.primary,
+        fontVariant: ["tabular-nums"],
     },
     messageCard: {
         backgroundColor: colors.muted,

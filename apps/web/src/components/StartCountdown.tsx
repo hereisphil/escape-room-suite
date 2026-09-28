@@ -18,13 +18,11 @@ export function StartCountdown({
     roomName,
     socket,
     isLive,
-    onStart,
 }: {
     roomId: EscapeRoomType["id"];
     roomName: EscapeRoomType["name"];
     socket: Socket;
     isLive: boolean;
-    onStart: (roomId: EscapeRoomType["id"]) => void;
 }) {
     const [open, setOpen] = useState(false);
 
@@ -45,7 +43,6 @@ export function StartCountdown({
     const handleCLick = () => {
         try {
             socket.emit("room:start", roomId);
-            onStart(roomId);
             successToast();
             setOpen(false);
         } catch (error) {
