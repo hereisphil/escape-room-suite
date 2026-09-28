@@ -152,7 +152,11 @@ function App() {
               </p>
             ) : null}
             <CardFooter className="flex justify-around">
-              <SendMessage roomName={currentRoom.name} socket={socket} />
+              <SendMessage
+                roomId={currentRoom.id}
+                roomName={currentRoom.name}
+                socket={socket}
+              />
               <StartCountdown
                 roomName={currentRoom.name}
                 roomId={currentRoom.id}

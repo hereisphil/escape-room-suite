@@ -1,10 +1,11 @@
 import { useLocalSearchParams } from "expo-router";
 import { useAuth, useCountdown } from "@global-client-auth";
+import { showGameMasterMessage } from "@global-client-ui";
 import { ActivityIndicator, Text, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
 import { useEffect, useState } from "react";
-import type { EscapeRoomType } from "@global-types";
+import type { EscapeRoomType, RoomMessage } from "@global-types";
 import { colors, radius } from "@global-theme";
 
 const RING_SIZE = 280;
@@ -50,7 +51,7 @@ function CountdownRing({ endsAt }: { endsAt: number }) {
 
 export default function RoomScreen() {
     const { roomId } = useLocalSearchParams<{ roomId: string }>();
-    const { rooms, countdowns } = useAuth();
+    const { socket, rooms, countdowns } = useAuth();
     const [escapeRoom, setEscapeRoom] = useState<EscapeRoomType>();
     const countdown =
         countdowns.find((item) => item.roomId === Number(roomId)) ?? null;
@@ -60,6 +61,20 @@ export default function RoomScreen() {
         const room = rooms?.find((room) => room.id === Number(roomId));
         setEscapeRoom(room);
     }, [rooms, roomId]);
+
+    useEffect(() => {
+        if (!socket || !roomId) return;
+
+        const onMessage = (payload: RoomMessage) => {
+            if (payload.roomId !== Number(roomId)) return;
+            showGameMasterMessage(payload.message);
+        };
+
+        socket.on("message:received", onMessage);
+        return () => {
+            socket.off("message:received", onMessage);
+        };
+    }, [socket, roomId]);
 
     if (!rooms || !roomId || !escapeRoom) {
         return (

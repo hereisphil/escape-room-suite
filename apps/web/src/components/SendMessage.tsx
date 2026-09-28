@@ -22,9 +22,11 @@ import { useState } from "react";
 import type { Socket } from "socket.io-client";
 
 export function SendMessage({
+    roomId,
     roomName,
     socket,
 }: {
+    roomId: EscapeRoomType["id"];
     roomName: EscapeRoomType["name"];
     socket: Socket;
 }) {
@@ -47,7 +49,7 @@ export function SendMessage({
 
     const handleSubmit = () => {
         try {
-            socket.emit("message:send", message);
+            socket.emit("message:send", roomId, message);
             successToast();
             setMessage("");
             setOpen(false);

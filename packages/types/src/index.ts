@@ -29,6 +29,11 @@ export interface RoomCountdown {
     endsAt: number;
 }
 
+export interface RoomMessage {
+    roomId: number;
+    message: string;
+}
+
 export function remainingMs(endsAt: number, now = Date.now()) {
     return Math.max(0, endsAt - now);
 }
@@ -51,14 +56,14 @@ export function countdownProgress(remaining: number) {
 // Events emitted by the Server and handled by the Client
 export interface ServerToClientEvents {
     "room:load": (rooms: EscapeRoomType[]) => void;
-    "message:received": (message: string) => void;
+    "message:received": (payload: RoomMessage) => void;
     "room:start": (countdown: RoomCountdown) => void;
 }
 
 // Events emitted by the Client and handled by the Server
 export interface ClientToServerEvents {
     "client:register": (clientType: ClientType) => void;
-    "message:send": (message: string) => void;
+    "message:send": (roomId: EscapeRoomType["id"], message: string) => void;
     "admin:error": (error: string) => void;
     "room:start": (id: EscapeRoomType["id"]) => void;
 }

@@ -100,9 +100,14 @@ io.on("connection", (socket) => {
         );
     });
 
-    socket.on("message:send", (message) => {
-        console.log(message);
-        socket.emit("message:received", message);
+    socket.on("message:send", (roomId, message) => {
+        if (typeof message !== "string") return;
+        const text = message.trim();
+        const room = EscapeRooms.find((item) => item.id === roomId);
+        if (!room || !text) return;
+
+        console.log(`message:send room ${roomId}: ${text}`);
+        io.emit("message:received", { roomId, message: text });
     });
 
     socket.on("room:start", (roomId) => {

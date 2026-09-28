@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
+import { showGameMasterMessage } from "@global-client-ui";
 import { useAuth } from "@global-client-auth";
-import type { EscapeRoomType } from "@global-types";
+import type { EscapeRoomType, RoomMessage } from "@global-types";
 
 type RoomValue = {
     room: EscapeRoomType;
@@ -38,15 +39,17 @@ export function RoomProvider({ room, children }: RoomProviderProps) {
     useEffect(() => {
         if (!socket) return;
 
-        const onMessage = (message: string) => {
-            setLatestMessage(message);
+        const onMessage = (payload: RoomMessage) => {
+            if (payload.roomId !== room.id) return;
+            setLatestMessage(payload.message);
+            showGameMasterMessage(payload.message);
         };
 
         socket.on("message:received", onMessage);
         return () => {
             socket.off("message:received", onMessage);
         };
-    }, [socket]);
+    }, [socket, room.id]);
 
     return (
         <RoomContext.Provider
